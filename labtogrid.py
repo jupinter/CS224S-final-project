@@ -1,12 +1,7 @@
 import numpy as np
 import sys
 
-if __name__ == '__main__':
-    if len(sys.argv) < 3:
-        print 'PROVIDE INPUT AND OUTPUT FILES'
-        print 'Args: python labtogrid.py infile.lab outfile.TextGrid'
-        print 'Usage example: python labtogrid.py ../ATrampAbroad/lab/chp01_00001.lab ../ATrampAbroad/TextGrid/chp01_00001.TextGrid'
-    filename = sys.argv[1]
+def process_lab(file):
     phones = []
     syllables = []
     words = []
@@ -34,8 +29,7 @@ if __name__ == '__main__':
                 pos = elems[3][5:-1]
                 poss.append([word_start, end_time, pos])
                 word_start = end_time
-    namesplit = filename.split('/')
-    outfile = '/'.join(namesplit[:-2]) + '/TextGrid/' + namesplit[-1][:-4] + '.TextGrid'
+def write_textgrid(file, phones, syllables, words, poss):
     with open(outfile, 'w') as f:
         f.write('File type = "ooTextFile"\n')
         f.write('Object class = "TextGrid"\n')
@@ -61,3 +55,13 @@ if __name__ == '__main__':
         print_list(syllables, 'syllables', 2)
         print_list(words, 'words', 3)
         print_list(poss, 'pos', 3)
+
+if __name__ == '__main__':
+    if len(sys.argv) < 3:
+        print 'PROVIDE INPUT AND OUTPUT FILES'
+        print 'Args: python labtogrid.py infile.lab outfile.TextGrid'
+        print 'Usage example: python labtogrid.py ../ATrampAbroad/lab/chp01_00001.lab ../ATrampAbroad/TextGrid/chp01_00001.TextGrid'
+    infile = sys.argv[1]
+    outfile = sys.argv[2]
+    phones, syllables, words, poss = process_lab(filename)
+    write_textgrid(outfile, phones, syllables, words, poss)
