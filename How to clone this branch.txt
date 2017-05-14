@@ -1,0 +1,5 @@
+cd into the folder that contains the folder of the other branch
+
+git clone -b workspace https://github.com/olek-glowka/CS224S-final-project workspace
+
+boom, done
