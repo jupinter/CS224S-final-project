@@ -2,13 +2,15 @@ import numpy as np
 import sys
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print 'Usage: labtogrid dir/chptXX_YYYY.lab'
-        print 'saves as chptXX_YYYY.textgrid in current directory at the moment'
+    if len(sys.argv) < 3:
+        print 'PROVIDE INPUT AND OUTPUT FILES'
+        print 'Args: python labtogrid.py infile.lab outfile.TextGrid'
+        print 'Usage example: python labtogrid.py ../ATrampAbroad/lab/chp01_00001.lab ../ATrampAbroad/TextGrid/chp01_00001.TextGrid'
     filename = sys.argv[1]
     phones = []
     syllables = []
     words = []
+    poss = []
     with open(filename) as f:
         phone_start = 0
         syl_start = 0
@@ -29,8 +31,11 @@ if __name__ == '__main__':
             if len(elems) > 2:
                 word = elems[2][6:-1]
                 words.append([word_start, end_time, word])
+                pos = elems[3][5:-1]
+                poss.append([word_start, end_time, pos])
                 word_start = end_time
-    outfile = filename.split('/')[-1][:-4] + '.TextGrid'
+    namesplit = filename.split('/')
+    outfile = '/'.join(namesplit[:-2]) + '/TextGrid/' + namesplit[-1][:-4] + '.TextGrid'
     with open(outfile, 'w') as f:
         f.write('File type = "ooTextFile"\n')
         f.write('Object class = "TextGrid"\n')
@@ -55,3 +60,4 @@ if __name__ == '__main__':
         print_list(phones, 'phones', 1)
         print_list(syllables, 'syllables', 2)
         print_list(words, 'words', 3)
+        print_list(poss, 'pos', 3)
