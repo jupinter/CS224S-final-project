@@ -1,13 +1,15 @@
 import os
 import sys
-# from subprocess import call
+import subprocess
 
 converter = '../festival/bin/text2wave'
 
 def line_to_wav(line, path):
     with open('temp.txt', 'w') as f:
         f.write(line)
-    os.system('{} {} > {}'.format(converter, 'temp.txt', path))
+    # subprocess supposedly nicer, but it doesn't terminate.
+    # subprocess.call([converter, '-o', path, 'temp.txt'], shell=True)
+    os.system('{} -o {} {}'.format(converter, path, 'temp.txt'))
 
 '''
 1 indexed descrpiton of lines:
@@ -20,9 +22,16 @@ if __name__ == '__main__':
         print ''
         print 'File Args: python indextowav.py sentence_index.txt outputdir'
         print 'Usage example: python indextowav.py ../ATrampAbroad/sentence_index.txt ../ATrampAbroad/TTS'
+        print ''
+        print 'Optional Arg: last chapter to process: does 1-n'
+        print 'default is all'
         exit()
     index = sys.argv[1]
     output_dir = sys.argv[2]
+
+    min_chapters = None
+    max_chapters = sys.argv[3] if len(sys.argv) > 3 else None
+    
     curr_chapter = 0
     with open(index) as f:
         for line in f:
@@ -30,12 +39,17 @@ if __name__ == '__main__':
                 continue
             line = line.split('\t')
             name = line[0]
-            if name[0] == '-': # no file associated
+            sentence = line[5]
+            if len(name) < 3 or name[:3] != 'chp': # no file associated
                 continue
             chapter = int(name[3:5])
+            if min_chapters and chapter < min_chapters:
+                continue
+            if max_chapters and chapter > max_chapters:
+                exit()
+
             if chapter != curr_chapter:
                 print 'Processing chapter', chapter
                 curr_chapter = chapter
-            sentence = line[5]
             outpath = os.path.join(output_dir, name + '.wav')
             line_to_wav(sentence, outpath)
