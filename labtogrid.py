@@ -1,12 +1,12 @@
-import numpy as np
+import os
 import sys
 
-def process_lab(file):
+def read_lab(file):
     phones = []
     syllables = []
     words = []
     poss = []
-    with open(filename) as f:
+    with open(file) as f:
         phone_start = 0
         syl_start = 0
         word_start = 0
@@ -29,8 +29,9 @@ def process_lab(file):
                 pos = elems[3][5:-1]
                 poss.append([word_start, end_time, pos])
                 word_start = end_time
-def write_textgrid(file, phones, syllables, words, poss):
-    with open(outfile, 'w') as f:
+    return phones, syllables, words, poss, end_time
+def write_textgrid(file, phones, syllables, words, poss, end_time):
+    with open(file, 'w') as f:
         f.write('File type = "ooTextFile"\n')
         f.write('Object class = "TextGrid"\n')
         f.write('\n')
@@ -56,12 +57,33 @@ def write_textgrid(file, phones, syllables, words, poss):
         print_list(words, 'words', 3)
         print_list(poss, 'pos', 3)
 
+def process(inpath, outpath):
+    phones, syllables, words, poss, end_time = read_lab(inpath)
+    write_textgrid(outpath, phones, syllables, words, poss, end_time)
+
 if __name__ == '__main__':
     if len(sys.argv) < 3:
-        print 'PROVIDE INPUT AND OUTPUT FILES'
-        print 'Args: python labtogrid.py infile.lab outfile.TextGrid'
+        print 'ERROR: provide input and output paths/directories'
+        print ''
+        print 'File Args: python labtogrid.py infile.lab outfile.TextGrid'
         print 'Usage example: python labtogrid.py ../ATrampAbroad/lab/chp01_00001.lab ../ATrampAbroad/TextGrid/chp01_00001.TextGrid'
-    infile = sys.argv[1]
-    outfile = sys.argv[2]
-    phones, syllables, words, poss = process_lab(filename)
-    write_textgrid(outfile, phones, syllables, words, poss)
+        print ''
+        print 'Dir Args: python labtogrid.py indir outdir'
+        print 'Usage example: python labtogrid.py ../ATrampAbroad/lab ../ATrampAbroad/TextGrid'
+    if os.path.isdir(sys.argv[1]) and os.path.isdir(sys.argv[2]):
+        indir = sys.argv[1]
+        outdir = sys.argv[2]
+        curr_chapter = 0
+        for infile in os.listdir(indir):
+            outfile = infile[:-4] + '.TextGrid'
+            chapter = int(infile[3:5])
+            if chapter != curr_chapter:
+                print 'Processing chapter', chapter
+                curr_chapter = chapter
+            inpath = os.path.join(indir, infile)
+            outpath = os.path.join(outdir, outfile)
+            process(inpath, outpath)
+    elif not os.path.isdir(sys.argv[1]) and not os.path.isdir(sys.argv[2]):
+        process(sys.argv[1], sys.argv[2])
+    else:
+        print 'ERROR: Both args should be either both files or both directories'
