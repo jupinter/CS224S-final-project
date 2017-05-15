@@ -70,6 +70,7 @@ if __name__ == '__main__':
         print ''
         print 'Dir Args: python labtogrid.py indir outdir'
         print 'Usage example: python labtogrid.py ../ATrampAbroad/lab ../ATrampAbroad/TextGrid'
+        exit()
     if os.path.isdir(sys.argv[1]) and os.path.isdir(sys.argv[2]):
         indir = sys.argv[1]
         outdir = sys.argv[2]
