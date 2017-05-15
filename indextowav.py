@@ -23,7 +23,6 @@ if __name__ == '__main__':
         exit()
     index = sys.argv[1]
     output_dir = sys.argv[2]
-    count = 0
     curr_chapter = 0
     with open(index) as f:
         for line in f:
@@ -40,6 +39,3 @@ if __name__ == '__main__':
             sentence = line[5]
             outpath = os.path.join(output_dir, name + '.wav')
             line_to_wav(sentence, outpath)
-            count += 1
-            if count > 10:
-                exit()
