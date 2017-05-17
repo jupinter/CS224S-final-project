@@ -9,6 +9,8 @@ def line_to_wav(line, path):
         f.write(line)
     # subprocess supposedly nicer, but it doesn't terminate.
     # subprocess.call([converter, '-o', path, 'temp.txt'], shell=True)
+
+    # This eats ctrl + c, so need to manually kill python to terminate
     os.system('{} -o {} {}'.format(converter, path, 'temp.txt'))
 
 '''
@@ -31,7 +33,7 @@ if __name__ == '__main__':
 
     min_chapters = None
     max_chapters = sys.argv[3] if len(sys.argv) > 3 else None
-    
+
     curr_chapter = 0
     with open(index) as f:
         for line in f:
