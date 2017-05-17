@@ -1,17 +1,20 @@
 import os
 import sys
+import shutil
 
-def get_folder(name):
-    folder = os.path.join('..', 'boston-univ-radio-corpus', 'BU_RADIO_' + name[1], name[0:3])
+text2wave = '../festival/bin/text2wave'
+
+def get_path(name):
+    path = os.path.join('..', 'boston-univ-radio-corpus', 'BU_RADIO_' + name[1], name[0:3])
     if name[3] == 's':
-        folder = os.path.join(folder, 'radio', name[3:6])
+        path = os.path.join(path, 'radio', name[3:6])
     else:
-        folder = os.path.join(folder, 'labnews', name[3], 'radio' if name[4:6] == 'rl' else 'nonradio')
-    return folder
+        path = os.path.join(path, 'labnews', name[3], 'radio' if name[4:6] == 'rl' else 'oldradio')
+    return path
 
 # for files of format end_time, junk, BLAH
-def get_entry(folder, name, extension, text_index):
-    file = os.path.join(folder, name + extension)
+def get_entry(path, name, extension, text_index):
+    file = os.path.join(path, name + extension)
     ret = []
     start_time = 0.
     with open(file) as f:
@@ -30,8 +33,8 @@ def get_entry(folder, name, extension, text_index):
             start_time = end_time
     return ret
 
-def get_pos(folder, name, words):
-    file = os.path.join(folder, name + '.pos')
+def get_pos(path, name, words):
+    file = os.path.join(path, name + '.pos')
     idx = 0
     pos = []
     with open(file) as f:
@@ -46,13 +49,9 @@ def get_pos(folder, name, words):
             idx += 1
     return pos
 
-def get_aln(folder, name, labels):
-    file = os.path.join
-
-def write_textgrid(filename, layers, names, end_time):
-    # file = os.path.join('..', 'boston-univ-radio-corpus', 'textgrid', filename + '.TextGrid')
-    file = filename + '.TextGrid'
-    with open(file, 'w') as f:
+def write_textgrid(out_path, name, layers, names, end_time):
+    out_file = os.path.join(out_path, name + '.TextGrid')
+    with open(out_file, 'w') as f:
         f.write('File type = "ooTextFile"\n')
         f.write('Object class = "TextGrid"\n')
         f.write('\n')
@@ -74,21 +73,48 @@ def write_textgrid(filename, layers, names, end_time):
                 f.write('\t\t\txmax = {}\n'.format(end))
                 f.write('\t\t\ttext = "{}"\n'.format(text))
 
+def TTS(name, path, out_path):
+    in_file = os.path.join(path, name + '.txt')
+    out_file = os.path.join(out_path, name + '.wav')
+    temp_file = 'temp.txt'
+    string = ''
+    with open(in_file) as orig:
+        for line in orig:
+            string = string + line
+    string = string.replace('brth', '').replace('\n', ' ').replace('  ', ' ').replace('  ', ' ')
+    with open(temp_file, 'w') as temp:
+        temp.write(string)
+    os.system('{} -o {} {}'.format(text2wave, out_file, temp_file))
+
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        print 'give name of thingy to be converted'
-        print 'e.g. f1as01p1 or f1ajrlp1'
+        print 'Provide name of data to be processed, e.g. f2bs01p1'
+        print 'puts stuff into ../boston-samples'
+        print 'python bostontogrid.py f2bs01p1'
         exit()
     name = sys.argv[1]
 
-    folder = get_folder(name)
+    path = get_path(name)
+    out_path = os.path.join('..', 'boston-samples')
+    # make sure out_path exists
+    if not os.path.exists(out_path):
+        os.makedirs(out_path)
 
-    tones = get_entry(folder, name, '.ton', 3)
-    labels = get_entry(folder, name, '.lbl', 4) #lbl is hand corrected
-    words = get_entry(folder, name, '.wrd', 4)
-    pos = get_pos(folder, name, words)
-    breaks = get_entry(folder, name, '.brk', 4)
+    # build text grid.
+    # described in filedesc.doc
+
+    tones = get_entry(path, name, '.ton', 3)
+    labels = get_entry(path, name, '.lbl', 4)
+    words = get_entry(path, name, '.wrd', 4)
+    pos = get_pos(path, name, words)
+    breaks = get_entry(path, name, '.brk', 4)
 
     end_time = labels[-1][1]
 
-    write_textgrid(name, [breaks, tones, words, pos], ['breaks', 'tones', 'words', 'pos'], end_time)
+    write_textgrid(out_path, name, [breaks, tones, words, pos], ['breaks', 'tones', 'words', 'pos'], end_time)
+
+    # copy original sound
+    shutil.copy2(os.path.join(path, name + '.sph'), out_path)
+
+    # text to speech, with no breath
+    TTS(name, path, out_path)
