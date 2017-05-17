@@ -9,40 +9,6 @@ def get_folder(name):
         folder = os.path.join(folder, 'labnews', name[3], 'radio' if name[4:6] == 'rl' else 'nonradio')
     return folder
 
-def get_tones(folder, name):
-    file = os.path.join(folder, name + '.ton')
-    tones = []
-    start_time = 0.
-    with open(file) as f:
-        for line in f:
-            if line == '#\n':
-                break
-        for line in f:
-            elems = line.strip().split(' ')
-            end_time = float(elems[0])
-            text = elems[3]
-            tones.append([start_time, end_time, text])
-            start_time = end_time
-    return tones
-
-def get_labels(folder, name):
-    file = os.path.join(folder, name + '.lbl')
-    labels = []
-    start_time = 0.
-    with open(file) as f:
-        for line in f:
-            if line == '#\n':
-                break
-        for line in f:
-            elems = line.strip().split(' ')
-            end_time = float(elems[0])
-            if end_time == 0 or str(end_time) == 'nan':
-                continue
-            text = elems[4]
-            labels.append([start_time, end_time, text])
-            start_time = end_time
-    return labels
-
 # for files of format end_time, junk, BLAH
 def get_entry(folder, name, extension, text_index):
     file = os.path.join(folder, name + extension)
@@ -53,6 +19,8 @@ def get_entry(folder, name, extension, text_index):
             if line == '#\n':
                 break
         for line in f:
+            if line == '\n':
+                continue
             elems = line.strip().split(' ')
             end_time = float(elems[0])
             if end_time == 0 or str(end_time) == 'nan':
@@ -73,16 +41,17 @@ def get_pos(folder, name, words):
             elems = line.strip().split(' ')
             # word in words[idx] should be word in elems up to extra punctuation in elems
             if words[idx][2].lower() not in elems[0].lower():
-                print 'mismatch: ', words[idx][2], elems[0]
+                print 'word/pos mismatch: ', words[idx][2], elems[0]
             pos.append([words[idx][0], words[idx][1], elems[1]])
             idx += 1
     return pos
 
 def get_aln(folder, name, labels):
-    
+    file = os.path.join
 
-def write_textgrid(layers, names, end_time):
-    file = 'out.TextGrid'
+def write_textgrid(filename, layers, names, end_time):
+    # file = os.path.join('..', 'boston-univ-radio-corpus', 'textgrid', filename + '.TextGrid')
+    file = filename + '.TextGrid'
     with open(file, 'w') as f:
         f.write('File type = "ooTextFile"\n')
         f.write('Object class = "TextGrid"\n')
@@ -115,10 +84,11 @@ if __name__ == '__main__':
     folder = get_folder(name)
 
     tones = get_entry(folder, name, '.ton', 3)
-    labels = get_entry(folder, name, '.lbl', 4)
+    labels = get_entry(folder, name, '.lbl', 4) #lbl is hand corrected
     words = get_entry(folder, name, '.wrd', 4)
     pos = get_pos(folder, name, words)
+    breaks = get_entry(folder, name, '.brk', 4)
 
     end_time = labels[-1][1]
 
-    write_textgrid([tones, words, pos, labels], ['tones', 'words', 'pos', 'labels'], end_time)
+    write_textgrid(name, [breaks, tones, words, pos], ['breaks', 'tones', 'words', 'pos'], end_time)
