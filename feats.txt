@@ -1,0 +1,2 @@
+stress
+pos_in_word
