@@ -2,7 +2,7 @@ import os
 import sys
 import subprocess
 
-converter = '../festival/examples/dumpfeats'
+converter = '../festival/examples/text2utt'
 
 def line_to_feats(line, outpath):
     with open('temp.txt', 'w') as f:
@@ -28,7 +28,7 @@ if __name__ == '__main__':
     index = sys.argv[1]
     output_dir = sys.argv[2]
 
-    min_chapters = None
+    min_chapters = 8
     max_chapters = int(sys.argv[3]) if len(sys.argv) > 3 else None
 
     curr_chapter = 0
@@ -38,6 +38,7 @@ if __name__ == '__main__':
                 continue
             line = line.split('\t')
             name = line[0]
+            # 5_SENT_TXT_BOOK  6_SENT_TXT_REC  7_SENT_TXT_LAB
             sentence = line[5]
             if len(name) < 3 or name[:3] != 'chp': # no file associated
                 continue

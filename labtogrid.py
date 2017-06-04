@@ -19,6 +19,16 @@ def read_lab(file):
             phone = e1[2]
             phones.append([phone_start, end_time, phone])
             phone_start = end_time
+            if phone == 'sil' or phone == 'pau':
+                syllable = ''
+                word = ''
+                pos = ''
+                syllables.append([syl_start, end_time, syllable])
+                words.append([word_start, end_time, word])
+                poss.append([word_start, end_time, pos])
+                syl_start = end_time
+                word_start = end_time
+                continue
             if len(elems) > 1:
                 syllable = elems[1] # just a $
                 syllables.append([syl_start, end_time, syllable])
@@ -30,6 +40,10 @@ def read_lab(file):
                 poss.append([word_start, end_time, pos])
                 word_start = end_time
     return phones, syllables, words, poss, end_time
+
+
+
+
 def write_textgrid(file, phones, syllables, words, poss, end_time):
     with open(file, 'w') as f:
         f.write('File type = "ooTextFile"\n')
