@@ -11,6 +11,7 @@ def line_to_feats(line, outpath):
     # print converter
     # print outpath
     # print '{} -o {} {}'.format(converter, outpath, 'temp.txt')
+    line = line.strip('-')
     os.system('{} {} > {}'.format(converter, 'temp.txt', outpath))
 
 if __name__ == '__main__':
@@ -28,7 +29,7 @@ if __name__ == '__main__':
     index = sys.argv[1]
     output_dir = sys.argv[2]
 
-    min_chapters = 8
+    min_chapters = 19
     max_chapters = int(sys.argv[3]) if len(sys.argv) > 3 else None
 
     curr_chapter = 0

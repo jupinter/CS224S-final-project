@@ -8,22 +8,18 @@ import time
 import logging
 from datetime import datetime
 import os
-# uncomment this line to suppress Tensorflow warnings
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import tensorflow as tf
 import numpy as np
 from six.moves import xrange as range
 from tqdm import tqdm
 from tensorflow.python.ops import variable_scope as vs
-# from tensorflow.python.ops.nn import rnn_cell, dynamic_rnn, bidirectional_dynamic_rnn
-# tf.nn.dynamic_rnn
-# tf.contrib.rnn.GRUCell(
 
 
 class Config(object):
     num_features = 2
     batch_size = 10
-    num_epochs = 5
+    num_epochs = 10
     lr = 1e-4
     max_length = 30
     cell_size = 64
@@ -57,29 +53,51 @@ class OurModel():
 
 
     def add_prediction_op(self):
+        '''
         cell = tf.contrib.rnn.BasicLSTMCell(self.config.cell_size)
-        # o, h = tf.nn.bidirectional_dynamic_rnn(
-        o, h = tf.nn.dynamic_rnn(
-                                               cell = cell,
-                                               # cell_fw = cell,
-                                               # cell_bw = cell,
-                                               dtype = tf.float32,
-                                               sequence_length = self.seq_lens_placeholder,
-                                               inputs = self.inputs_placeholder
-                                               )
-        # o_fw, o_bw = o
-        # h_fw, h_bw = h
-        # o = tf.concat(2, (fw_o, bw_o))
-        # h = tf.concat(1, (fw_h, bw_h))
-
-        # print self.inputs_placeholder # 5 x 30 x 2
-        # print self.seq_lens_placeholder # 5
-        # print self.labels_placeholder # 5 x 30 x 3
-        # print o # 5 x 30 x 64: batch * length * cell
-        # print h # sort of ? x 64?
+        o, h = tf.nn.dynamic_rnn(cell = cell,
+                                 dtype = tf.float32,
+                                 sequence_length = self.seq_lens_placeholder,
+                                 inputs = self.inputs_placeholder
+                                 )
+        print self.inputs_placeholder # 10 x 30 x 2
+        print self.seq_lens_placeholder # 10
+        print self.labels_placeholder # 10 x 30 x 3
+        print o # 10 x 30 x 64: batch * length * cell
+        print h # tuple of 2x ? x 64?
+        assert False
 
         o2 = tf.reshape(o, (-1, self.config.cell_size))
         W = tf.get_variable('weight', shape = (self.config.cell_size, 3))
+        b = tf.get_variable('bias', shape = (self.config.batch_size * self.config.max_length, 3))
+        y = tf.reshape(tf.matmul(o2, W) + b, (self.config.batch_size, self.config.max_length, 3))
+        '''
+
+        # https://github.com/tensorflow/tensorflow/issues/8191
+        # cell = tf.contrib.rnn.BasicLSTMCell(self.config.cell_size, 
+        #                                     reuse=tf.get_variable_scope().reuse)
+        cell_fw = tf.contrib.rnn.BasicLSTMCell(self.config.cell_size)
+        cell_bw = tf.contrib.rnn.BasicLSTMCell(self.config.cell_size)
+        o, h = tf.nn.bidirectional_dynamic_rnn(cell_fw = cell_fw,
+                                               cell_bw = cell_bw,
+                                               dtype = tf.float32,
+                                               sequence_length = self.seq_lens_placeholder,
+                                               inputs = self.inputs_placeholder,
+                                               )
+        fw_o, bw_o = o
+        fw_h, bw_h = h
+        o = tf.concat((fw_o, bw_o), 2)
+
+        # print self.inputs_placeholder # 10 x 30 x 2
+        # print self.seq_lens_placeholder # 10
+        # print self.labels_placeholder # 10 x 30 x 3
+        # print fw_o # 10, 30, 64
+        # print bw_o # 10, 30, 64
+        # print o # 10 x 30 x 128: batch * length * cell x 2
+        # assert False 
+
+        o2 = tf.reshape(o, (-1, self.config.cell_size * 2))
+        W = tf.get_variable('weight', shape = (self.config.cell_size * 2, 3))
         b = tf.get_variable('bias', shape = (self.config.batch_size * self.config.max_length, 3))
         y = tf.reshape(tf.matmul(o2, W) + b, (self.config.batch_size, self.config.max_length, 3))
 
@@ -184,7 +202,8 @@ def make_batches(config, feats_dir, target_dir):
 def test(feats_dir, target_dir):
     config = Config()
 
-
+    start = time.time()
+    print 'Batching data...'
     batched_inputs, batched_length, batched_labels = make_batches(config, feats_dir, target_dir)
 
     num_batches = len(batched_inputs)
@@ -200,6 +219,7 @@ def test(feats_dir, target_dir):
     test_inputs = batched_inputs[test_idxs]
     test_labels = batched_labels[test_idxs]
     test_length = batched_length[test_idxs]
+    print 'batched in {:3f}'.format(time.time() - start)
 
 
     with tf.Graph().as_default():
