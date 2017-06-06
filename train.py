@@ -226,13 +226,17 @@ def test(feats_dir, target_dir):
         model = OurModel(config)
         
         init = tf.global_variables_initializer()
-        saver = tf.train.Saver()
+        saver = tf.train.Saver(max_to_keep = 5, #default 5
+                               pad_step_number = True, # so that alphasort of models works
+                               )
 
 
         with tf.Session() as sess:
             start = time.time()
             sess.run(init)
-            # saver.restore(sess, model.config.model_output)
+            # train_writer = tf.summary.FileWriter('train', sess.graph)
+            if load_from_file is not None:
+                saver.restore(sess, load_from_file)
 
             print 'Model initialized in {:.3f}'.format(time.time() - start)
 
@@ -251,6 +255,7 @@ def test(feats_dir, target_dir):
                     loss = model.train_on_batch(sess, inputs, labels, length)
 
                     train_cost += loss
+                    # train_writer.add_summary(summary, step_ii)
                 train_cost = train_cost / num_train / config.batch_size
 
                 for batch_idx in tqdm(range(num_test), desc = 'Testing'):
@@ -264,7 +269,33 @@ def test(feats_dir, target_dir):
                 test_cost = test_cost / num_test / config.batch_size
 
 
-                print "Epoch {}/{}, train_cost = {:.3f}, test_cost = {:3f} time = {:.3f}".format(epoch + 1, config.num_epochs, train_cost, test_cost, time.time() - start)
+                print "Epoch {}/{} | train_cost = {:.3f} | test_cost = {:.3f} | time = {:.3f}".format(epoch + 1, config.num_epochs, train_cost, test_cost, time.time() - start)
+
+                saver.save(sess, save_to_file, global_step = epoch + 1 + last_model_number)
+
+
+model_name = 'test'
+model_dir = os.path.join('..', 'model')
+
+save_to_file = os.path.join(model_dir, model_name)
+
+models = [file for file in os.listdir(model_dir) if model_name in file and '.index' in file]
+
+# Set True to force it to make a new model
+# probably better to just do a new name
+new_model = False 
+load_from_file = None
+last_model_number = 0
+
+if new_model or len(models) == 0:
+    print 'New model, no loading'
+else:
+    last_model = max(models)
+    last_model_name = last_model.split('.')[0]
+    last_model_number = int(last_model_name.split('-')[-1])
+    load_from_file = os.path.join(model_dir, last_model_name)
+    print 'Loading from' + load_from_file
+    print 'starting saving from checkpoint ' + str(1 + last_model_number)
 
 if __name__ == '__main__':
     test('../ATrampAbroad/feats', '../ATrampAbroad/f0')

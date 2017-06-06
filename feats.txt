@@ -1,2 +1,11 @@
-stress
+accented
+asyl_in
+asyl_out
+last_accent
+next_accent
 pos_in_word
+stress
+ssyl_in
+ssyl_out
+syl_in
+tobi_accent
