@@ -8,4 +8,3 @@ stress
 ssyl_in
 ssyl_out
 syl_in
-tobi_accent

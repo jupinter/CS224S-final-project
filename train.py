@@ -17,16 +17,12 @@ from tensorflow.python.ops import variable_scope as vs
 
 
 class Config(object):
-    num_features = 2
+    num_features = sum(1 for line in open('feats.txt') if line != '\n')
     batch_size = 10
     num_epochs = 10
     lr = 1e-4
-    max_length = 30
+    max_length = 50
     cell_size = 64
-
-    def __init__(self):
-        self.output_path = os.path.join('model','{:%Y%m%d_%H%M%S}'.format(datetime.now()))
-        self.model_output = os.path.join(self.output_path, "model.weights")
 
 class OurModel():
     def add_placeholders(self):
@@ -274,7 +270,7 @@ def test(feats_dir, target_dir):
                 saver.save(sess, save_to_file, global_step = epoch + 1 + last_model_number)
 
 
-model_name = 'test'
+model_name = 'test2'
 model_dir = os.path.join('..', 'model')
 
 save_to_file = os.path.join(model_dir, model_name)
@@ -283,7 +279,7 @@ models = [file for file in os.listdir(model_dir) if model_name in file and '.ind
 
 # Set True to force it to make a new model
 # probably better to just do a new name
-new_model = False 
+new_model = True 
 load_from_file = None
 last_model_number = 0
 
