@@ -78,7 +78,7 @@ class Config(object):
     batch_size = 10
     num_epochs = 20
     lr = 0.001
-    lr_decay = 0.95
+    lr_decay = .95
     max_length = 50
     cell_size = 64
 #     base loss: 1.44068e+06

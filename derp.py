@@ -13,7 +13,10 @@ l = [num_lines(os.path.join(feats_dir, f)) for f in os.listdir(feats_dir)]
 nums = list(set(l))
 counts = {x : l.count(x) for x in nums}
 pairs = zip(*counts.items())
-plt.scatter(*pairs)
+# plt.scatter(*pairs)
+
+plt.hist(nums, range(0, 130, 5))
+
 plt.title('Syllable Counts')
 plt.ylim(ymin = 0)
 plt.xlim(xmin = 0)
