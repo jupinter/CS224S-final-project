@@ -15,14 +15,70 @@ from six.moves import xrange as range
 from tqdm import tqdm
 from tensorflow.python.ops import variable_scope as vs
 
+position_types = ['single', 'initial', 'mid', 'final']
+# syl_coda_type, syl_onset_type
+coda_types = ['+S', '-V', '+V-S'] 
+# syl_accent, tobi_accent, tobi_endtone
+tone_types = ['NONE', 'H*', '!H*', 'L-L%', 'L-H%', 'H-H%', 'L+H*', 'multi']
+# pbreak
+break_types = ['NB', 'B', 'BB', 'mB']
+
+def process_line(line):
+    line = line.strip().split(' ')
+    line = [float(x) for x in line]
+    return line
+
+feats_dir = '../ATrampAbroad/feats' # for numeric
+# feats_dir = '../ATrampAbroad/feats2' # for both alpha and numeric
+
+target_dir = '../ATrampAbroad/f0'
+
+num_numeric_features = 15
+'''
+position_type
+syl_coda_type
+syl_onset_type
+syl_accent
+tobi_accent
+tobi_endtone
+R:SylStructure.parent.R:Word.pbreak
+'''
+# alpha_features = ['pos', 'coda', 'coda', 'tone', 'tone', 'tone', 'break']
+# num_alpha_features = alpha_features.count('pos') * len(position_types) + alpha_features.count('coda') * len(coda_types) + alpha_features.count('tone') * len(tone_types) + alpha_features.count('break') * len(break_types)
+alpha_features = [position_types] + [coda_types] * 2 + [tone_types] * 3 + [break_types]
+num_alpha_features = sum(len(x) for x in alpha_features)
+num_total_features = num_numeric_features + num_alpha_features
+print '{} Numeric features, {} alpha features, for a feature size of {}'.format(num_numeric_features, num_alpha_features, num_total_features)
+
+def process_feats(line):
+    line = line.strip().split(' ')
+    feats = np.zeros(num_total_features)
+    offset = num_numeric_features
+    for idx, x in enumerate(line):
+        if idx < num_numeric_features:
+            feats[idx] = float(x)
+        else:
+            # one hot shennanigans
+            alpha_idx = idx - num_numeric_features
+            alpha_feats = alpha_features[alpha_idx]
+            try:
+                feat_idx = alpha_feats.index(x)
+                feats[feat_idx + offset] = 1
+            except ValueError:
+                # not there, just keep going
+                pass
+            offset += len(alpha_feats)
+    return feats
+
 
 class Config(object):
-    num_features = sum(1 for line in open('feats.txt') if line != '\n')
+    num_features = num_numeric_features
     batch_size = 10
-    num_epochs = 10
+    num_epochs = 20
     lr = 1e-4
-    max_length = 50
-    cell_size = 64
+    max_length = 80
+    cell_size = 128
+    regularization = 1e-7
 
 class OurModel():
     def add_placeholders(self):
@@ -101,17 +157,22 @@ class OurModel():
         self.pred = y
 
     def add_loss_op(self):
-        # Compute cross entropy for each frame.
         mask = tf.sequence_mask(self.seq_lens_placeholder, self.config.max_length)
 
         masked_labels = tf.boolean_mask(self.labels_placeholder, mask)
         masked_pred = tf.boolean_mask(self.pred, mask)
         loss = tf.nn.l2_loss(tf.subtract(masked_labels, masked_pred))
+
+        # All non-bias trainable variables
+        l2_cost = sum(tf.nn.l2_loss(v) for v in tf.trainable_variables() if 'bias' not in v.name)
         
         self.loss = loss
+        self.l2_cost = l2_cost
 
     def add_training_op(self):
     
+        # lr = tf.train.exponential_decay(starter_learning_rate, global_step, 100000, 0.96)
+
         optimizer = tf.train.AdamOptimizer(self.config.lr)
         train_op = optimizer.minimize(self.loss)
         
@@ -124,8 +185,9 @@ class OurModel():
         feed = self.create_feed_dict(train_inputs_batch, train_labels_batch, train_seq_len_batch)
         # batch_cost, summary = session.run([self.loss, self.merged_summary_op], feed)
 
-        loss, _= session.run([self.loss, self.train_op], feed)
-
+        loss, l2, _= session.run([self.loss, self.l2_cost, self.train_op], feed)
+        print 'base loss:', loss
+        print 'l2 cost:', l2
         return loss
 
     def test_on_batch(self, session, test_inputs_batch, test_labels_batch, test_seq_len_batch):
@@ -145,12 +207,6 @@ class OurModel():
         self.add_loss_op()
         self.add_training_op()
 
-
-
-def process_line(line):
-    line = line.strip().split(' ')
-    line = [float(x) for x in line]
-    return line
 
 # force it to be max_feats length, pad teh rest with zeros
 def pad(elems, config):
@@ -195,10 +251,10 @@ def make_batches(config, feats_dir, target_dir):
 
     return np.array(batched_inputs), np.array(batched_length), np.array(batched_labels)
 
-def test(feats_dir, target_dir):
+def test():
     config = Config()
 
-    start = time.time()
+    global_start = time.time()
     print 'Batching data...'
     batched_inputs, batched_length, batched_labels = make_batches(config, feats_dir, target_dir)
 
@@ -215,7 +271,7 @@ def test(feats_dir, target_dir):
     test_inputs = batched_inputs[test_idxs]
     test_labels = batched_labels[test_idxs]
     test_length = batched_length[test_idxs]
-    print 'batched in {:3f}'.format(time.time() - start)
+    print 'batched in {:3f}'.format(time.time() - global_start)
 
 
     with tf.Graph().as_default():
@@ -247,9 +303,7 @@ def test(feats_dir, target_dir):
                     inputs = train_inputs[batch_idx]
                     labels = train_labels[batch_idx]
                     length = train_length[batch_idx]
-                
                     loss = model.train_on_batch(sess, inputs, labels, length)
-
                     train_cost += loss
                     # train_writer.add_summary(summary, step_ii)
                 train_cost = train_cost / num_train / config.batch_size
@@ -258,23 +312,18 @@ def test(feats_dir, target_dir):
                     inputs = test_inputs[batch_idx]
                     labels = test_labels[batch_idx]
                     length = test_length[batch_idx]
-                
                     loss = model.test_on_batch(sess, inputs, labels, length)
-
                     test_cost += loss
                 test_cost = test_cost / num_test / config.batch_size
-
 
                 print "Epoch {}/{} | train_cost = {:.3f} | test_cost = {:.3f} | time = {:.3f}".format(epoch + 1, config.num_epochs, train_cost, test_cost, time.time() - start)
 
                 saver.save(sess, save_to_file, global_step = epoch + 1 + last_model_number)
+    # print 'total duration: {:.3f}'.format(time.time() - global_start)
 
-
-model_name = 'test2'
+model_name = 'bi_num'
 model_dir = os.path.join('..', 'model')
-
 save_to_file = os.path.join(model_dir, model_name)
-
 models = [file for file in os.listdir(model_dir) if model_name in file and '.index' in file]
 
 # Set True to force it to make a new model
@@ -293,8 +342,9 @@ else:
     print 'Loading from' + load_from_file
     print 'starting saving from checkpoint ' + str(1 + last_model_number)
 
+
 if __name__ == '__main__':
-    test('../ATrampAbroad/feats', '../ATrampAbroad/f0')
+    test()
 
 
 

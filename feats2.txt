@@ -13,3 +13,10 @@ R:SylStructure.parent.R:Word.pos_score
 R:SylStructure.parent.R:Word.word_break
 R:SylStructure.parent.R:Word.word_duration
 R:SylStructure.parent.R:Word.word_numsyls
+position_type
+syl_coda_type
+syl_onset_type
+syl_accent
+tobi_accent
+tobi_endtone
+R:SylStructure.parent.R:Word.pbreak

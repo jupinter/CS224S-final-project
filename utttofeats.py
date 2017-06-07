@@ -3,25 +3,25 @@ import sys
 import subprocess
 
 converter = '../festival/examples/dumpfeats'
-feats = 'feats.txt'
 
 if __name__ == '__main__':
-    if len(sys.argv) < 3 or not os.path.isdir(sys.argv[1]) or not os.path.isdir(sys.argv[2]):
+    if len(sys.argv) < 4 or not os.path.isdir(sys.argv[1]) or os.path.isdir(sys.argv[2]) or not os.path.isdir(sys.argv[3]):
         print 'ERROR: provide input utt dir and output feats directory'
         print ''
-        print 'File Args: python uttofeats.py utt_dir feats_dir'
-        print 'Usage example: python indextowav.py ../ATrampAbroad/utt ../ATrampAbroad/feats'
+        print 'File Args: python utttofeats.py utt_dir feats_file output_feats_dir'
+        print 'Usage example: python utttofeats.py ../ATrampAbroad/utt feats.txt ../ATrampAbroad/feats'
         exit()
 
 
-    in_path = sys.argv[1]
-    output_dir = sys.argv[2]
+    utt_path = sys.argv[1]
+    feats = sys.argv[2]
+    output_dir = sys.argv[3]
     output = os.path.join(output_dir, '%s.feats')
     fromfile = 'utts.txt'
     
     with open(fromfile, 'w') as f:
-        for utt in os.listdir(in_path):
-            f.write(os.path.join(in_path, utt) + '\n')
+        for utt in os.listdir(utt_path):
+            f.write(os.path.join(utt_path, utt) + '\n')
 
     command = '{} -relation Syllable -feats {} -from_file {} -output {}'.format(converter, feats, fromfile, output)
     print command
