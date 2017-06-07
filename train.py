@@ -79,7 +79,7 @@ class Config(object):
     num_epochs = 20
     lr = 0.001
     lr_decay = .95
-    max_length = 50
+    max_length = 80
     cell_size = 64
 #     base loss: 1.44068e+06
 # l2 cost: 859.771

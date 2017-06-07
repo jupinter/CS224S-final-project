@@ -92,3 +92,4 @@ Epoch 17/20 | train_cost = 150462.298 | test_cost = 153300.254 | time = 16.127
 Epoch 18/20 | train_cost = 150454.505 | test_cost = 153294.926 | time = 16.813
 Epoch 19/20 | train_cost = 150447.267 | test_cost = 153290.041 | time = 18.444
 Epoch 20/20 | train_cost = 150440.536 | test_cost = 153285.560 | time = 17.264
+

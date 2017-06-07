@@ -30,3 +30,6 @@ Epoch 20/20 | train_cost = 149832.878 | test_cost = 158171.951 | time = 17.117
 
 lr = 0.001
 50, 64
+Epoch 10/20 | train_cost = 151213.209 | test_cost = 152247.519 | time = 15.687
+Epoch 20/20 | train_cost = 150937.599 | test_cost = 152141.602 | time = 15.449
+80, 64
