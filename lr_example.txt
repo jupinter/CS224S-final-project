@@ -1,0 +1,138 @@
+Numeric 15 features, 30 chaps of Tramp
+    num_features = num_numeric_features
+    batch_size = 10
+    num_epochs = 20
+    max_length = 50
+    cell_size = 64
+
+lr = 0.0001
+New model, no loading
+Batching data...
+batched in 50.492191
+Model initialized in 0.395
+Training: 100%|█████████████████████████████| 341/341 [00:14<00:00, 22.75it/s]
+Testing: 100%|████████████████████████████████| 37/37 [00:00<00:00, 87.02it/s]
+Epoch 1/20 | train_cost = 982497.216 | test_cost = 1053421.526 | time = 15.403
+Training: 100%|█████████████████████████████| 341/341 [00:18<00:00, 17.13it/s]
+Testing: 100%|████████████████████████████████| 37/37 [00:00<00:00, 53.15it/s]
+Epoch 2/20 | train_cost = 905439.872 | test_cost = 986716.251 | time = 18.887
+Training: 100%|█████████████████████████████| 341/341 [00:16<00:00, 17.29it/s]
+Testing: 100%|████████████████████████████████| 37/37 [00:00<00:00, 83.48it/s]
+Epoch 3/20 | train_cost = 855897.896 | test_cost = 937923.171 | time = 16.483
+Training: 100%|█████████████████████████████| 341/341 [00:16<00:00, 21.97it/s]
+Testing: 100%|████████████████████████████████| 37/37 [00:00<00:00, 97.69it/s]
+Epoch 4/20 | train_cost = 815356.536 | test_cost = 894951.851 | time = 17.248
+Training: 100%|█████████████████████████████| 341/341 [00:17<00:00, 19.46it/s]
+Testing: 100%|████████████████████████████████| 37/37 [00:00<00:00, 74.36it/s]
+Epoch 5/20 | train_cost = 778635.820 | test_cost = 855197.672 | time = 18.026
+Training: 100%|█████████████████████████████| 341/341 [00:18<00:00, 18.34it/s]
+Testing: 100%|████████████████████████████████| 37/37 [00:00<00:00, 71.19it/s]
+Epoch 6/20 | train_cost = 744318.142 | test_cost = 817720.107 | time = 18.674
+Training: 100%|█████████████████████████████| 341/341 [00:15<00:00, 20.50it/s]
+Testing: 100%|████████████████████████████████| 37/37 [00:00<00:00, 94.79it/s]
+Epoch 7/20 | train_cost = 711806.774 | test_cost = 782056.032 | time = 16.276
+Training: 100%|█████████████████████████████| 341/341 [00:15<00:00, 20.75it/s]
+Testing: 100%|████████████████████████████████| 37/37 [00:00<00:00, 98.76it/s]
+Epoch 8/20 | train_cost = 680784.763 | test_cost = 747940.138 | time = 15.962
+Training: 100%|█████████████████████████████| 341/341 [00:15<00:00, 21.65it/s]
+Testing: 100%|███████████████████████████████| 37/37 [00:00<00:00, 102.68it/s]
+Epoch 9/20 | train_cost = 651062.779 | test_cost = 715206.220 | time = 16.115
+Training: 100%|█████████████████████████████| 341/341 [00:18<00:00, 18.88it/s]
+Testing: 100%|████████████████████████████████| 37/37 [00:00<00:00, 91.01it/s]
+Epoch 10/20 | train_cost = 622518.840 | test_cost = 683743.166 | time = 18.469
+Training: 100%|█████████████████████████████| 341/341 [00:19<00:00, 17.48it/s]
+Testing: 100%|████████████████████████████████| 37/37 [00:00<00:00, 80.54it/s]
+Epoch 11/20 | train_cost = 595069.317 | test_cost = 653472.329 | time = 19.944
+Training: 100%|█████████████████████████████| 341/341 [00:16<00:00, 21.27it/s]
+Testing: 100%|████████████████████████████████| 37/37 [00:00<00:00, 93.71it/s]
+Epoch 12/20 | train_cost = 568653.593 | test_cost = 624335.243 | time = 16.426
+Training: 100%|█████████████████████████████| 341/341 [00:16<00:00, 22.30it/s]
+Testing: 100%|████████████████████████████████| 37/37 [00:00<00:00, 96.69it/s]
+Epoch 13/20 | train_cost = 543133.483 | test_cost = 595728.298 | time = 16.871
+Training: 100%|█████████████████████████████| 341/341 [00:15<00:00, 22.98it/s]
+Testing: 100%|████████████████████████████████| 37/37 [00:00<00:00, 80.37it/s]
+Epoch 14/20 | train_cost = 517992.521 | test_cost = 568225.611 | time = 16.196
+Training: 100%|█████████████████████████████| 341/341 [00:19<00:00, 17.48it/s]
+Testing: 100%|████████████████████████████████| 37/37 [00:00<00:00, 71.36it/s]
+Epoch 15/20 | train_cost = 494123.729 | test_cost = 541988.414 | time = 20.029
+Training: 100%|█████████████████████████████| 341/341 [00:18<00:00, 17.97it/s]
+Testing: 100%|████████████████████████████████| 37/37 [00:00<00:00, 74.00it/s]
+Epoch 16/20 | train_cost = 471271.333 | test_cost = 516828.742 | time = 19.476
+Training: 100%|█████████████████████████████| 341/341 [00:19<00:00, 17.57it/s]
+Testing: 100%|████████████████████████████████| 37/37 [00:00<00:00, 72.77it/s]
+Epoch 17/20 | train_cost = 449349.740 | test_cost = 492693.118 | time = 19.930
+Training: 100%|█████████████████████████████| 341/341 [00:19<00:00, 17.64it/s]
+Testing: 100%|████████████████████████████████| 37/37 [00:00<00:00, 69.82it/s]
+Epoch 18/20 | train_cost = 428323.155 | test_cost = 469551.225 | time = 19.861
+Training: 100%|█████████████████████████████| 341/341 [00:18<00:00, 18.15it/s]
+Testing: 100%|████████████████████████████████| 37/37 [00:00<00:00, 79.99it/s]
+Epoch 19/20 | train_cost = 408168.838 | test_cost = 447381.849 | time = 19.254
+Training: 100%|█████████████████████████████| 341/341 [00:18<00:00, 18.40it/s]
+Testing: 100%|████████████████████████████████| 37/37 [00:00<00:00, 81.48it/s]
+Epoch 20/20 | train_cost = 388869.951 | test_cost = 426168.508 | time = 18.987
+
+lr = 0.001
+Epoch 1/20 | train_cost = 802042.161 | test_cost = 674635.443 | time = 18.210
+Epoch 2/20 | train_cost = 507294.332 | test_cost = 436547.284 | time = 18.377
+Epoch 3/20 | train_cost = 334231.554 | test_cost = 295827.545 | time = 17.392
+Epoch 4/20 | train_cost = 235254.159 | test_cost = 219394.357 | time = 17.780
+Epoch 5/20 | train_cost = 184167.902 | test_cost = 182843.728 | time = 17.126
+Epoch 6/20 | train_cost = 161304.072 | test_cost = 168110.225 | time = 17.168
+Epoch 7/20 | train_cost = 152794.099 | test_cost = 163342.990 | time = 20.076
+Epoch 8/20 | train_cost = 150271.357 | test_cost = 162172.232 | time = 19.342
+Epoch 9/20 | train_cost = 149696.611 | test_cost = 161966.941 | time = 18.895
+Epoch 10/20 | train_cost = 149592.052 | test_cost = 161939.078 | time = 17.953
+Epoch 11/20 | train_cost = 149567.074 | test_cost = 161929.303 | time = 17.137
+Epoch 12/20 | train_cost = 149550.951 | test_cost = 161919.452 | time = 18.576
+Epoch 13/20 | train_cost = 149535.752 | test_cost = 161909.748 | time = 16.996
+Epoch 14/20 | train_cost = 149521.163 | test_cost = 161900.765 | time = 18.957
+Epoch 15/20 | train_cost = 149507.236 | test_cost = 161892.579 | time = 19.968
+Epoch 16/20 | train_cost = 149493.937 | test_cost = 161885.132 | time = 20.902
+Epoch 17/20 | train_cost = 149481.215 | test_cost = 161878.343 | time = 18.985
+Epoch 18/20 | train_cost = 149469.004 | test_cost = 161872.087 | time = 17.471
+Epoch 19/20 | train_cost = 149457.243 | test_cost = 161866.263 | time = 16.848
+Epoch 20/20 | train_cost = 149445.855 | test_cost = 161860.735 | time = 18.035
+
+lr = 0.001 * (.9)^epoch
+Epoch 1/20 | train_cost = 796638.266 | test_cost = 642432.005 | time = 18.433
+Epoch 2/20 | train_cost = 513894.784 | test_cost = 433024.018 | time = 20.909
+Epoch 3/20 | train_cost = 356710.048 | test_cost = 311681.373 | time = 18.193
+Epoch 4/20 | train_cost = 265449.392 | test_cost = 241623.254 | time = 17.978
+Epoch 5/20 | train_cost = 213004.108 | test_cost = 201864.498 | time = 18.769
+Epoch 6/20 | train_cost = 183457.640 | test_cost = 179855.777 | time = 17.299
+Epoch 7/20 | train_cost = 167244.849 | test_cost = 168050.252 | time = 17.069
+Epoch 8/20 | train_cost = 158628.837 | test_cost = 161953.845 | time = 16.891
+Epoch 9/20 | train_cost = 154217.421 | test_cost = 158943.722 | time = 16.699
+Epoch 10/20 | train_cost = 152051.626 | test_cost = 157533.358 | time = 17.045
+Epoch 11/20 | train_cost = 151035.915 | test_cost = 156911.830 | time = 17.401
+Epoch 12/20 | train_cost = 150581.755 | test_cost = 156657.083 | time = 16.586
+Epoch 13/20 | train_cost = 150387.663 | test_cost = 156561.381 | time = 16.700
+Epoch 14/20 | train_cost = 150307.361 | test_cost = 156528.970 | time = 19.347
+Epoch 15/20 | train_cost = 150273.984 | test_cost = 156519.012 | time = 16.848
+Epoch 16/20 | train_cost = 150258.873 | test_cost = 156515.672 | time = 16.841
+Epoch 17/20 | train_cost = 150250.560 | test_cost = 156513.589 | time = 17.226
+Epoch 18/20 | train_cost = 150244.750 | test_cost = 156511.342 | time = 18.338
+Epoch 19/20 | train_cost = 150239.953 | test_cost = 156508.784 | time = 16.984
+Epoch 20/20 | train_cost = 150235.680 | test_cost = 156506.054 | time = 17.690
+
+lr = 0.001 * (.95)^epoch
+Epoch 1/20 | train_cost = 800050.950 | test_cost = 637572.603 | time = 18.546
+Epoch 2/20 | train_cost = 510927.239 | test_cost = 421858.486 | time = 18.711
+Epoch 3/20 | train_cost = 346111.402 | test_cost = 295046.323 | time = 18.932
+Epoch 4/20 | train_cost = 250708.346 | test_cost = 223318.747 | time = 18.412
+Epoch 5/20 | train_cost = 198201.236 | test_cost = 185199.399 | time = 19.295
+Epoch 6/20 | train_cost = 171284.004 | test_cost = 166518.616 | time = 18.704
+Epoch 7/20 | train_cost = 158667.720 | test_cost = 158228.192 | time = 19.676
+Epoch 8/20 | train_cost = 153359.539 | test_cost = 154952.191 | time = 18.430
+Epoch 9/20 | train_cost = 151388.814 | test_cost = 153814.165 | time = 18.288
+Epoch 10/20 | train_cost = 150750.889 | test_cost = 153466.659 | time = 16.610
+Epoch 11/20 | train_cost = 150569.257 | test_cost = 153369.545 | time = 18.716
+Epoch 12/20 | train_cost = 150519.306 | test_cost = 153340.486 | time = 17.455
+Epoch 13/20 | train_cost = 150501.135 | test_cost = 153327.936 | time = 15.761
+Epoch 14/20 | train_cost = 150489.647 | test_cost = 153319.482 | time = 17.148
+Epoch 15/20 | train_cost = 150479.778 | test_cost = 153312.409 | time = 19.884
+Epoch 16/20 | train_cost = 150470.705 | test_cost = 153306.051 | time = 16.731
+Epoch 17/20 | train_cost = 150462.298 | test_cost = 153300.254 | time = 16.127
+Epoch 18/20 | train_cost = 150454.505 | test_cost = 153294.926 | time = 16.813
+Epoch 19/20 | train_cost = 150447.267 | test_cost = 153290.041 | time = 18.444
+Epoch 20/20 | train_cost = 150440.536 | test_cost = 153285.560 | time = 17.264

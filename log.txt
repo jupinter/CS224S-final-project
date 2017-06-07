@@ -18,4 +18,10 @@ Epoch 20/20 | train_cost = 664002.514 | test_cost = 610700.537 | time = 21.684
 Epoch 20/20 | train_cost = 418037.541 | test_cost = 384099.702 | time = 23.217
     cell_size = 128
     max_length = 80
-NOTE: LR needs tuning. Still large jumps in cost per epoch, so can be increased a bunch, then probably needs decay.
+Epoch 20/20 | train_cost = 188500.828 | test_cost = 182930.101 | time = 36.034
+NOTE: LR needs tuning. Still large jumps in cost per epoch, so can be increased a bunch, then probably needs decay. Epoch 20 results not too great to use (model can still improve a lot), but does give a good idea of what's going on
+    50, 64, 1e-3
+converged around epoch 10/20.
+Epoch 10/20 | train_cost = 149981.918 | test_cost = 158258.792 | time = 16.050
+Epoch 20/20 | train_cost = 149832.878 | test_cost = 158171.951 | time = 17.117
+    lr 0.01 * (.5)^epoch

@@ -15,6 +15,10 @@ from six.moves import xrange as range
 from tqdm import tqdm
 from tensorflow.python.ops import variable_scope as vs
 
+# DISABLE TQDM, since it's fast enough to not need it at the moment
+def tqdm(l, desc = '', *args):
+    return l
+
 position_types = ['single', 'initial', 'mid', 'final']
 # syl_coda_type, syl_onset_type
 coda_types = ['+S', '-V', '+V-S'] 
@@ -43,8 +47,6 @@ tobi_accent
 tobi_endtone
 R:SylStructure.parent.R:Word.pbreak
 '''
-# alpha_features = ['pos', 'coda', 'coda', 'tone', 'tone', 'tone', 'break']
-# num_alpha_features = alpha_features.count('pos') * len(position_types) + alpha_features.count('coda') * len(coda_types) + alpha_features.count('tone') * len(tone_types) + alpha_features.count('break') * len(break_types)
 alpha_features = [position_types] + [coda_types] * 2 + [tone_types] * 3 + [break_types]
 num_alpha_features = sum(len(x) for x in alpha_features)
 num_total_features = num_numeric_features + num_alpha_features
@@ -75,24 +77,21 @@ class Config(object):
     num_features = num_numeric_features
     batch_size = 10
     num_epochs = 20
-    lr = 1e-4
-    max_length = 80
-    cell_size = 128
-    regularization = 1e-7
+    lr = 1e-3
+    max_length = 50
+    cell_size = 64
+#     base loss: 1.44068e+06
+# l2 cost: 859.771
+    # regularization = 1e-7
 
 class OurModel():
     def add_placeholders(self):
-
         # per item in batch, per syllable, features
         self.inputs_placeholder = tf.placeholder(tf.float32, shape = (self.config.batch_size, self.config.max_length, self.config.num_features), name = 'inputs_placeholder')
         # per item in batch, per syllable, 3 predictions
         self.labels_placeholder = tf.placeholder(tf.float32, shape = (self.config.batch_size, self.config.max_length, 3), name = 'labels_placeholder')
         # per item in batch, number of syllables
         self.seq_lens_placeholder = tf.placeholder(tf.int64, shape = (self.config.batch_size))
-
-
-        # inputs_placeholder = tf.placeholder(tf.float32, shape = (config.batch_size, config.max_length, config.num_features), name = 'inputs_placeholder')
-        # seq_lens_placeholder = tf.placeholder(tf.int64, shape = (config.batch_size))
 
     def create_feed_dict(self, inputs_batch, labels_batch, seq_lens_batch):
         feed_dict = {
@@ -164,16 +163,26 @@ class OurModel():
         loss = tf.nn.l2_loss(tf.subtract(masked_labels, masked_pred))
 
         # All non-bias trainable variables
-        l2_cost = sum(tf.nn.l2_loss(v) for v in tf.trainable_variables() if 'bias' not in v.name)
+        # l2_cost = sum(tf.nn.l2_loss(v) for v in tf.trainable_variables() if 'bias' not in v.name)
+        '''
+        params = tf.trainable_variables()
+        grads = tf.gradients(self.loss, params)
+        self.global_norm = tf.global_norm(grads)
+        self.param_norm = sum(tf.nn.l2_loss(param) for param in params if len(param.get_shape()) >= 2)
+        '''
         
         self.loss = loss
-        self.l2_cost = l2_cost
+        # self.l2_cost = l2_cost
 
     def add_training_op(self):
-    
-        # lr = tf.train.exponential_decay(starter_learning_rate, global_step, 100000, 0.96)
+        global_step = tf.Variable(0, trainable=False)
+        self.global_step_increment = tf.assign_add(global_step, 1)
+        lr = tf.train.exponential_decay(learning_rate = 0.001, 
+                                        global_step = global_step, 
+                                        decay_steps = 1,
+                                        decay_rate = .95)
 
-        optimizer = tf.train.AdamOptimizer(self.config.lr)
+        optimizer = tf.train.AdamOptimizer(lr)
         train_op = optimizer.minimize(self.loss)
         
         self.train_op = train_op
@@ -181,18 +190,19 @@ class OurModel():
     def add_summary_op(self):
         self.merged_summary_op = tf.summary.merge_all()
 
-    def train_on_batch(self, session, train_inputs_batch, train_labels_batch, train_seq_len_batch):
+    def train_on_batch(self, sess, train_inputs_batch, train_labels_batch, train_seq_len_batch):
         feed = self.create_feed_dict(train_inputs_batch, train_labels_batch, train_seq_len_batch)
-        # batch_cost, summary = session.run([self.loss, self.merged_summary_op], feed)
+        # batch_cost, summary = sess.run([self.loss, self.merged_summary_op], feed)
 
-        loss, l2, _= session.run([self.loss, self.l2_cost, self.train_op], feed)
-        print 'base loss:', loss
-        print 'l2 cost:', l2
+        loss, _= sess.run([self.loss, self.train_op], feed)
         return loss
 
-    def test_on_batch(self, session, test_inputs_batch, test_labels_batch, test_seq_len_batch):
+    def increment_epoch(self, sess):
+        sess.run([self.global_step_increment], {})
+
+    def test_on_batch(self, sess, test_inputs_batch, test_labels_batch, test_seq_len_batch):
         feed = self.create_feed_dict(test_inputs_batch, test_labels_batch, test_seq_len_batch)
-        loss, = session.run([self.loss], feed)
+        loss, = sess.run([self.loss], feed)
 
         return loss
 
@@ -208,7 +218,7 @@ class OurModel():
         self.add_training_op()
 
 
-# force it to be max_feats length, pad teh rest with zeros
+# force it to be max_feats length, pad the rest with zeros
 def pad(elems, config):
     return np.append(elems, np.zeros((config.max_length, elems.shape[1])), 0)[:config.max_length, :]
 
@@ -317,6 +327,8 @@ def test():
                 test_cost = test_cost / num_test / config.batch_size
 
                 print "Epoch {}/{} | train_cost = {:.3f} | test_cost = {:.3f} | time = {:.3f}".format(epoch + 1, config.num_epochs, train_cost, test_cost, time.time() - start)
+
+                model.increment_epoch(sess)
 
                 saver.save(sess, save_to_file, global_step = epoch + 1 + last_model_number)
     # print 'total duration: {:.3f}'.format(time.time() - global_start)
