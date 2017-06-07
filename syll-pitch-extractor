@@ -1,0 +1,118 @@
+# This script goes through sound and TextGrid files in a directory,
+# opens each pair of Sound and TextGrid, calculates the pitch maximum
+# of each labeled interval, and saves results to a text file.
+#
+# This script is distributed under the GNU General Public License.
+# Copyright 4.7.2003 Mietta Lennes
+
+form Analyze pitch from labeled segments in files
+	comment Directory of sound files
+	text sound_directory C:\Users\aglowka\Desktop\test-examples\sounds\
+	sentence Sound_file_extension .wav
+	comment Directory of TextGrid files
+	text textGrid_directory C:\Users\aglowka\Desktop\test-examples\textgrids\
+	sentence TextGrid_file_extension .TextGrid
+	comment Full path of the resulting text file:
+	text resultfile C:\Users\aglowka\Desktop\test-examples\pitch.txt
+	comment Which tier do you want to analyze?
+	sentence Tier syllables
+	comment Pitch analysis parameters
+	positive Time_step 0.01
+	positive Minimum_pitch_(Hz) 50
+	positive Maximum_pitch_(Hz) 500
+endform
+
+# Here you make a listing of all the sound files in a directory.
+# The example gets file names ending with ".wav" from the directory specified above
+
+Create Strings as file list... list 'sound_directory$'*'sound_file_extension$'
+numberOfFiles = Get number of strings
+
+# Write a row with column titles to the result file:
+titleline$ = "Filename	Syllable	Midpoint1	Midpoint2	Midpoint3	Pitch1	Pitch2	Pitch3'newline$'"
+fileappend "'resultfile$'" 'titleline$'
+fileappend "'resultfile$'"  "'numberOfFiles'"
+
+# Go through all the sound files, one by one:
+for ifile to numberOfFiles
+	filename$ = Get string... ifile
+	fileappend "'resultfile$'" 'sound_directory$''filename$'
+	# A sound file is opened from the listing:
+	Read from file... 'sound_directory$''filename$'
+	
+	
+	# Starting from here, you can add everything that should be 
+	# repeated for every sound file that was opened:
+	soundname$ = selected$ ("Sound", 1)
+	To Pitch... time_step minimum_pitch maximum_pitch
+	
+	# Open a TextGrid by the same name:
+	gridfile$ = "'textGrid_directory$''soundname$''textGrid_file_extension$'"
+
+	if fileReadable (gridfile$)
+		Read from file... 'gridfile$'
+		# Find the tier number that has the label given in the form:
+		call GetTier 'tier$' tier
+		numberOfIntervals = Get number of intervals... tier
+		# Pass through all intervals in the selected tier:
+		for interval to numberOfIntervals
+			label$ = Get label of interval... tier interval
+			if label$ <> ""
+				# if the interval has an unempty label, get its start and end:
+				start = Get starting point... tier interval
+				end = Get end point... tier interval
+				dur = end - start
+
+				# divide interval into 3 segments
+				segdur = dur/3
+				midpoint1 = start + (segdur/2)
+				midpoint2 = start + segdur + (segdur/2)
+				midpoint3 = start + (segdur*2) + (segdur/2)
+
+
+				# get pitch at each midpoint
+				select Pitch 'soundname$'
+				pitch1 = Get value at time... midpoint1 Hertz linear
+				pitch2 = Get value at time... midpoint2 Hertz linear
+				pitch3 = Get value at time... midpoint3 Hertz linear
+
+				# Save result to text file:
+				resultline$ = "'soundname$'	'label$'	'midpoint1'	'midpoint2'	'midpoint3'	'pitch1'	'pitch2'	'pitch3''newline$'"
+				fileappend "'resultfile$'" 'resultline$'
+				select TextGrid 'soundname$'
+			endif
+		endfor
+		# Remove the TextGrid object from the object list
+		select TextGrid 'soundname$'
+		Remove
+	endif
+	# Remove the temporary objects from the object list
+	select Sound 'soundname$'
+	plus Pitch 'soundname$'
+	Remove
+	select Strings list
+endfor
+
+Remove
+
+#-------------
+# This procedure finds the number of a tier that has a given label.
+
+procedure GetTier name$ variable$
+        numberOfTiers = Get number of tiers
+        itier = 1
+        repeat
+                tier$ = Get tier name... itier
+                itier = itier + 1
+        until tier$ = name$ or itier > numberOfTiers
+        if tier$ <> name$
+                'variable$' = 0
+        else
+                'variable$' = itier - 1
+        endif
+
+	if 'variable$' = 0
+		exit The tier called 'name$' is missing from the file 'soundname$'!
+	endif
+
+endproc
