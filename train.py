@@ -77,7 +77,8 @@ class Config(object):
     num_features = num_numeric_features
     batch_size = 10
     num_epochs = 20
-    lr = 1e-3
+    lr = 0.001
+    lr_decay = 0.95
     max_length = 50
     cell_size = 64
 #     base loss: 1.44068e+06
@@ -177,10 +178,10 @@ class OurModel():
     def add_training_op(self):
         global_step = tf.Variable(0, trainable=False)
         self.global_step_increment = tf.assign_add(global_step, 1)
-        lr = tf.train.exponential_decay(learning_rate = 0.001, 
+        lr = tf.train.exponential_decay(learning_rate = self.config.lr, 
                                         global_step = global_step, 
                                         decay_steps = 1,
-                                        decay_rate = .95)
+                                        decay_rate = self.config.lr_decay)
 
         optimizer = tf.train.AdamOptimizer(lr)
         train_op = optimizer.minimize(self.loss)
