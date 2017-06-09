@@ -14,76 +14,31 @@ import numpy as np
 from six.moves import xrange as range
 from tqdm import tqdm
 from tensorflow.python.ops import variable_scope as vs
+from time import gmtime, strftime
 
 # DISABLE TQDM, since it's fast enough to not need it at the moment
-def tqdm(l, desc = '', *args):
+def tqdm(l, desc = '', total = 42, *args):
     return l
-
-position_types = ['single', 'initial', 'mid', 'final']
-# syl_coda_type, syl_onset_type
-coda_types = ['+S', '-V', '+V-S'] 
-# syl_accent, tobi_accent, tobi_endtone
-tone_types = ['NONE', 'H*', '!H*', 'L-L%', 'L-H%', 'H-H%', 'L+H*', 'multi']
-# pbreak
-break_types = ['NB', 'B', 'BB', 'mB']
 
 def process_line(line):
     line = line.strip().split(' ')
     line = [float(x) for x in line]
     return line
 
-feats_dir = '../ATrampAbroad/feats' # for numeric
-# feats_dir = '../ATrampAbroad/feats2' # for both alpha and numeric
-
-target_dir = '../ATrampAbroad/f0'
-
-num_numeric_features = 15
-'''
-position_type
-syl_coda_type
-syl_onset_type
-syl_accent
-tobi_accent
-tobi_endtone
-R:SylStructure.parent.R:Word.pbreak
-'''
-alpha_features = [position_types] + [coda_types] * 2 + [tone_types] * 3 + [break_types]
-num_alpha_features = sum(len(x) for x in alpha_features)
-num_total_features = num_numeric_features + num_alpha_features
-print '{} Numeric features, {} alpha features, for a feature size of {}'.format(num_numeric_features, num_alpha_features, num_total_features)
-
-def process_feats(line):
-    line = line.strip().split(' ')
-    feats = np.zeros(num_total_features)
-    offset = num_numeric_features
-    for idx, x in enumerate(line):
-        if idx < num_numeric_features:
-            feats[idx] = float(x)
-        else:
-            # one hot shennanigans
-            alpha_idx = idx - num_numeric_features
-            alpha_feats = alpha_features[alpha_idx]
-            try:
-                feat_idx = alpha_feats.index(x)
-                feats[feat_idx + offset] = 1
-            except ValueError:
-                # not there, just keep going
-                pass
-            offset += len(alpha_feats)
-    return feats
-
+feats_dirs = ['../ATrampAbroad/feats_final']
+f0_files = ['../ATrampAbroad/pitches.txt']
+num_feats = 189
 
 class Config(object):
-    num_features = num_numeric_features
+    # num_features = num_numeric_features
+    num_features = num_feats
     batch_size = 10
-    num_epochs = 20
-    lr = 0.001
-    lr_decay = .95
-    max_length = 80
-    cell_size = 64
-#     base loss: 1.44068e+06
-# l2 cost: 859.771
-    # regularization = 1e-7
+    num_epochs = 10
+    lr = 1.
+    lr_decay = .8
+    max_length = 50
+    cell_size = 128
+    regularization = 0
 
 class OurModel():
     def add_placeholders(self):
@@ -92,12 +47,14 @@ class OurModel():
         # per item in batch, per syllable, 3 predictions
         self.labels_placeholder = tf.placeholder(tf.float32, shape = (self.config.batch_size, self.config.max_length, 3), name = 'labels_placeholder')
         # per item in batch, number of syllables
-        self.seq_lens_placeholder = tf.placeholder(tf.int64, shape = (self.config.batch_size))
+        self.seq_lens_placeholder = tf.placeholder(tf.int64, shape = (self.config.batch_size), name = 'seq_lens_placeholder')
+        self.masks_placeholder = tf.placeholder(tf.bool, shape = (self.config.batch_size, self.config.max_length, 3), name = 'masks_placeholder')
 
-    def create_feed_dict(self, inputs_batch, labels_batch, seq_lens_batch):
+    def create_feed_dict(self, inputs_batch, labels_batch, seq_lens_batch, masks_batch):
         feed_dict = {
             self.inputs_placeholder: inputs_batch,
-            self.seq_lens_placeholder: seq_lens_batch
+            self.seq_lens_placeholder: seq_lens_batch,
+            self.masks_placeholder: masks_batch
         } 
         if labels_batch is not None:
             feed_dict[self.labels_placeholder] = labels_batch
@@ -157,27 +114,27 @@ class OurModel():
         self.pred = y
 
     def add_loss_op(self):
-        mask = tf.sequence_mask(self.seq_lens_placeholder, self.config.max_length)
-
-        masked_labels = tf.boolean_mask(self.labels_placeholder, mask)
-        masked_pred = tf.boolean_mask(self.pred, mask)
+        masked_labels = tf.boolean_mask(self.labels_placeholder, self.masks_placeholder, name = 'masked_labels')
+        masked_pred = tf.boolean_mask(self.pred, self.masks_placeholder, name = 'masked_pred')
         loss = tf.nn.l2_loss(tf.subtract(masked_labels, masked_pred))
 
         # All non-bias trainable variables
         # l2_cost = sum(tf.nn.l2_loss(v) for v in tf.trainable_variables() if 'bias' not in v.name)
-        '''
-        params = tf.trainable_variables()
-        grads = tf.gradients(self.loss, params)
-        self.global_norm = tf.global_norm(grads)
-        self.param_norm = sum(tf.nn.l2_loss(param) for param in params if len(param.get_shape()) >= 2)
-        '''
         
-        self.loss = loss
+        params = tf.trainable_variables()
+        # grads = tf.gradients(self.loss, params)
+        # self.global_norm = tf.global_norm(grads)
+        self.param_norm = sum(tf.nn.l2_loss(param) for param in params if len(param.get_shape()) >= 2)
+        
+        
+        self.loss = loss + self.config.regularization * self.param_norm
+        self.base_loss = loss
+        tf.summary.scalar("loss", self.loss)
         # self.l2_cost = l2_cost
 
     def add_training_op(self):
-        global_step = tf.Variable(0, trainable=False)
-        self.global_step_increment = tf.assign_add(global_step, 1)
+        global_step = tf.Variable(0, trainable=False, name = 'epoch')
+        self.global_step_increment = tf.assign_add(global_step, 1, name = 'next_epoch')
         lr = tf.train.exponential_decay(learning_rate = self.config.lr, 
                                         global_step = global_step, 
                                         decay_steps = 1,
@@ -191,21 +148,21 @@ class OurModel():
     def add_summary_op(self):
         self.merged_summary_op = tf.summary.merge_all()
 
-    def train_on_batch(self, sess, train_inputs_batch, train_labels_batch, train_seq_len_batch):
-        feed = self.create_feed_dict(train_inputs_batch, train_labels_batch, train_seq_len_batch)
+    def train_on_batch(self, sess, train_inputs_batch, train_labels_batch, train_seq_len_batch, train_masks_batch):
+        feed = self.create_feed_dict(train_inputs_batch, train_labels_batch, train_seq_len_batch, train_masks_batch)
         # batch_cost, summary = sess.run([self.loss, self.merged_summary_op], feed)
 
-        loss, _= sess.run([self.loss, self.train_op], feed)
-        return loss
+        loss, _, summary, param_norm, base_loss = sess.run([self.loss, self.train_op, self.merged_summary_op, self.param_norm, self.base_loss], feed)
+        return loss, base_loss, param_norm, summary
 
     def increment_epoch(self, sess):
         sess.run([self.global_step_increment], {})
 
-    def test_on_batch(self, sess, test_inputs_batch, test_labels_batch, test_seq_len_batch):
-        feed = self.create_feed_dict(test_inputs_batch, test_labels_batch, test_seq_len_batch)
-        loss, = sess.run([self.loss], feed)
+    def test_on_batch(self, sess, test_inputs_batch, test_labels_batch, test_seq_len_batch, test_masks_batch):
+        feed = self.create_feed_dict(test_inputs_batch, test_labels_batch, test_seq_len_batch, test_masks_batch)
+        loss, base_loss, param_norm = sess.run([self.loss, self.base_loss, self.param_norm], feed)
 
-        return loss
+        return loss, base_loss, param_norm
 
 
     def __init__(self, config):
@@ -216,6 +173,7 @@ class OurModel():
         self.add_placeholders()
         self.add_prediction_op()
         self.add_loss_op()
+        self.add_summary_op()
         self.add_training_op()
 
 
@@ -223,73 +181,124 @@ class OurModel():
 def pad(elems, config):
     return np.append(elems, np.zeros((config.max_length, elems.shape[1])), 0)[:config.max_length, :]
 
-def make_batches(config, feats_dir, target_dir):
+# because it hates me
+def stack_on(stack, element):
+    if stack.shape[0] == 0:
+        return element
+    else:
+        return np.append(stack, element, 0)
+
+def batch_feats(config, feats_dirs):
     inputs = np.array([])
     length = np.array([])
-
-    for feats in os.listdir(feats_dir):
-        feats = os.path.join(feats_dir, feats)
-        with open(feats) as f:
-            elems = np.vstack(process_line(line) for line in f)
-        padded_elems = pad(elems, config)
-
-        length = np.append(length, min(elems.shape[0], config.max_length))
-        if inputs.shape[0] == 0:
-            inputs = np.array([padded_elems])
-        else:
-            inputs = np.append(inputs, [padded_elems], 0)
-
-    labels = np.array([])
-    for f0 in os.listdir(target_dir):
-        f0 = os.path.join(target_dir, f0)
-        with open(f0) as f:
-            elems = np.vstack(process_line(line) for line in f)
-        padded_elems = pad(elems, config)
-
-        if labels.shape[0] == 0:
-            labels = np.array([padded_elems])
-        else:
-            labels = np.append(labels, [padded_elems], 0)
-
+    final_feats = []
+    for feats_dir in feats_dirs:
+        num_files = len(os.listdir(feats_dir))
+        set_inputs = np.zeros((num_files, config.max_length, num_feats))
+        set_length = np.zeros(num_files)
+        for idx in tqdm(range(num_files), desc = 'Batching feats'):
+            feats = os.path.join(feats_dir, os.listdir(feats_dir)[idx])
+            with open(feats) as f:
+                elems = np.vstack(process_line(line) for line in f)
+            padded_elems = pad(elems, config)
+            set_inputs[idx] = padded_elems
+            set_length[idx] = min(elems.shape[0], config.max_length)
+        inputs = stack_on(inputs, set_inputs)
+        length = stack_on(length, set_length)
+        final_feats += [feats.split('/')[-1].split('.')[0]]
     batched_inputs = []
     batched_length = []
-    batched_labels = []
-    # Subtract so all batches are the same size
     for i in range(0, inputs.shape[0] - config.batch_size, config.batch_size):
         batched_inputs.append(inputs[i:i + config.batch_size])
         batched_length.append(length[i:i + config.batch_size])
-        batched_labels.append(labels[i:i + config.batch_size])
+    return np.array(batched_inputs), np.array(batched_length), final_feats
 
-    return np.array(batched_inputs), np.array(batched_length), np.array(batched_labels)
+def batch_f0(config, f0_files, final_feats):
+    labels = np.array([])
+    masks = np.array([])
+    for idx, f0_file in enumerate(f0_files):
+        with open(f0_file) as f:
+            num_lines = sum(1 for line in f) - 1
+        set_labels = np.zeros((num_lines, config.max_length, 3))
+        set_masks = np.zeros((num_lines, config.max_length, 3))
+        with open(f0_file) as f:
+            f.next() # skip first line
+            curr_file = ''
+            curr_file_number = 0
+            for line in tqdm(f, total = num_lines, desc = 'Batching f0s'):
+                line = line.strip().split('\t')
+                new_file = line[0][-11:]
+                nums = []
+                elem_mask = []
+                for x in line[5:8]:
+                    try:
+                        nums.append(float(x))
+                        elem_mask.append(1)
+                    except ValueError: # undefined
+                        nums.append(0)
+                        elem_mask.append(0)
+                if curr_file != new_file:
+                    if curr_file == final_feats[idx]:
+                        break
+                    if curr_file != '':
+                        padded_elems = pad(elems, config)
+                        padded_mask = pad(mask, config)
+                        set_labels[curr_file_number] = padded_elems
+                        set_masks[curr_file_number] = padded_mask
+                        curr_file_number += 1
+                    curr_file = new_file
+                    elems = np.array([nums])
+                    mask = np.array([elem_mask])
+                else:
+                    elems = np.append(elems, [nums], 0)
+                    mask = np.append(mask, [elem_mask], 0)
+        labels = stack_on(labels, set_labels)
+        masks = stack_on(masks, set_masks)
+    batched_labels = []
+    batched_masks = []
+    for i in range(0, labels.shape[0] - config.batch_size, config.batch_size):
+        batched_labels.append(labels[i:i + config.batch_size])
+        batched_masks.append(masks[i:i + config.batch_size])
+    return np.array(batched_labels), np.array(batched_masks)
 
 def test():
     config = Config()
 
     global_start = time.time()
     print 'Batching data...'
-    batched_inputs, batched_length, batched_labels = make_batches(config, feats_dir, target_dir)
+    batched_inputs, batched_length, final_feats = batch_feats(config, feats_dirs)
+    # print batched_inputs.shape # 375 10 80 189
+    # print batched_length.shape # 375 10
+    # print 'final feats:', final_feats
+    batched_labels, batched_masks = batch_f0(config, f0_files, final_feats)
+    # print batched_labels.shape # 375 10 80 3
+    # print batched_masks.shape # 375 10 80 3
 
     num_batches = len(batched_inputs)
-    num_test = int(0.1 * num_batches)
-    test_idxs = np.random.choice(num_batches, num_test)
-    train_idxs = list(set(range(num_batches)) - set(test_idxs))
+    num_dev = int(0.1 * num_batches)
+    dev_idxs = np.random.choice(num_batches, num_dev)
+    train_idxs = list(set(range(num_batches)) - set(dev_idxs))
     num_train = len(train_idxs)
 
     train_inputs = batched_inputs[train_idxs]
     train_labels = batched_labels[train_idxs]
     train_length = batched_length[train_idxs]
+    train_masks = batched_masks[train_idxs]
 
-    test_inputs = batched_inputs[test_idxs]
-    test_labels = batched_labels[test_idxs]
-    test_length = batched_length[test_idxs]
-    print 'batched in {:3f}'.format(time.time() - global_start)
+    dev_inputs = batched_inputs[dev_idxs]
+    dev_labels = batched_labels[dev_idxs]
+    dev_length = batched_length[dev_idxs]
+    dev_masks = batched_masks[dev_idxs]
+    print 'Batched in {:3f}'.format(time.time() - global_start)
 
+    train_scale = num_train * config.batch_size
+    dev_scale = num_dev * config.batch_size
 
     with tf.Graph().as_default():
         model = OurModel(config)
         
         init = tf.global_variables_initializer()
-        saver = tf.train.Saver(max_to_keep = 5, #default 5
+        saver = tf.train.Saver(max_to_keep = 1, #default 5
                                pad_step_number = True, # so that alphasort of models works
                                )
 
@@ -302,39 +311,55 @@ def test():
                 saver.restore(sess, load_from_file)
 
             print 'Model initialized in {:.3f}'.format(time.time() - start)
+            train_writer = tf.summary.FileWriter(logs_path + '/train', sess.graph)
 
             global_start = time.time()
-
+            step = 0
             for epoch in range(config.num_epochs):
+                train_base_loss = 0
                 train_cost = 0
-                test_cost = 0
+                train_param = 0
                 start = time.time()
 
-                for batch_idx in tqdm(range(num_train), desc = 'Training'):
+                for batch_idx in tqdm(range(num_train), desc = 'Train'):
                     inputs = train_inputs[batch_idx]
                     labels = train_labels[batch_idx]
                     length = train_length[batch_idx]
-                    loss = model.train_on_batch(sess, inputs, labels, length)
+                    masks = train_masks[batch_idx]
+                    loss, base_loss, param, summary = model.train_on_batch(sess, inputs, labels, length, masks)
                     train_cost += loss
-                    # train_writer.add_summary(summary, step_ii)
-                train_cost = train_cost / num_train / config.batch_size
+                    train_param += param
+                    train_base_loss += base_loss
+                    train_writer.add_summary(summary, step)
+                    step += 1
+                train_cost /= train_scale
+                train_param /= train_scale
+                train_base_loss /= train_scale
 
-                for batch_idx in tqdm(range(num_test), desc = 'Testing'):
-                    inputs = test_inputs[batch_idx]
-                    labels = test_labels[batch_idx]
-                    length = test_length[batch_idx]
-                    loss = model.test_on_batch(sess, inputs, labels, length)
-                    test_cost += loss
-                test_cost = test_cost / num_test / config.batch_size
+                dev_cost = 0
+                dev_param = 0
+                dev_base_loss = 0
+                for batch_idx in tqdm(range(num_dev), desc = 'Dev'):
+                    inputs = dev_inputs[batch_idx]
+                    labels = dev_labels[batch_idx]
+                    length = dev_length[batch_idx]
+                    masks = dev_masks[batch_idx]
+                    loss, base_loss, param = model.test_on_batch(sess, inputs, labels, length, masks)
+                    dev_cost += loss
+                    dev_param += param
+                    dev_base_loss += base_loss
+                dev_cost /= dev_scale
+                dev_param /= dev_scale
+                dev_base_loss /= dev_scale
 
-                print "Epoch {}/{} | train_cost = {:.3f} | test_cost = {:.3f} | time = {:.3f}".format(epoch + 1, config.num_epochs, train_cost, test_cost, time.time() - start)
+                print "Epoch {}/{} | train_cost = {:.3f} ({:.3f} w/o reg)| dev_cost = {:.3f} ({:.3f} w/o reg)| train_param = {:.3f} | dev_param = {:.3f} | time = {:.3f}".format(epoch + 1, config.num_epochs, train_cost, train_base_loss, dev_cost, dev_base_loss, train_param, dev_param, time.time() - start)
 
                 model.increment_epoch(sess)
 
-                saver.save(sess, save_to_file, global_step = epoch + 1 + last_model_number)
+                saver.save(sess, logs_path, global_step = epoch + 1 + last_model_number)
     # print 'total duration: {:.3f}'.format(time.time() - global_start)
 
-model_name = 'bi_num'
+model_name = 'many_features'
 model_dir = os.path.join('..', 'model')
 save_to_file = os.path.join(model_dir, model_name)
 models = [file for file in os.listdir(model_dir) if model_name in file and '.index' in file]
@@ -355,6 +380,7 @@ else:
     print 'Loading from' + load_from_file
     print 'starting saving from checkpoint ' + str(1 + last_model_number)
 
+logs_path = os.path.join('..', 'tensorboard', strftime("%Y_%m_%d_%H_%M_%S", gmtime()))
 
 if __name__ == '__main__':
     test()

@@ -93,3 +93,24 @@ Epoch 18/20 | train_cost = 150454.505 | test_cost = 153294.926 | time = 16.813
 Epoch 19/20 | train_cost = 150447.267 | test_cost = 153290.041 | time = 18.444
 Epoch 20/20 | train_cost = 150440.536 | test_cost = 153285.560 | time = 17.264
 
+lr = 0.01
+Epoch 1/20 | train_cost = 300428.974 | test_cost = 142288.258 | time = 17.950
+Epoch 2/20 | train_cost = 151693.977 | test_cost = 142222.448 | time = 16.920
+Epoch 3/20 | train_cost = 151504.804 | test_cost = 142004.791 | time = 17.301
+Epoch 4/20 | train_cost = 151263.832 | test_cost = 141845.644 | time = 19.300
+Epoch 5/20 | train_cost = 151077.983 | test_cost = 141729.924 | time = 18.981
+Epoch 6/20 | train_cost = 150926.969 | test_cost = 141643.279 | time = 16.908
+Epoch 7/20 | train_cost = 150800.600 | test_cost = 141578.004 | time = 16.675
+Epoch 8/20 | train_cost = 150693.545 | test_cost = 141526.207 | time = 16.512
+Epoch 9/20 | train_cost = 150600.527 | test_cost = 141488.151 | time = 16.746
+Epoch 10/20 | train_cost = 150519.189 | test_cost = 141456.501 | time = 17.811
+Epoch 11/20 | train_cost = 150447.670 | test_cost = 141436.327 | time = 31.342
+Epoch 12/20 | train_cost = 150385.256 | test_cost = 141416.520 | time = 17.768
+Epoch 13/20 | train_cost = 150326.082 | test_cost = 141407.991 | time = 17.073
+Epoch 14/20 | train_cost = 150274.682 | test_cost = 141399.133 | time = 16.327
+Epoch 15/20 | train_cost = 150225.398 | test_cost = 141399.953 | time = 17.031
+Epoch 16/20 | train_cost = 150182.507 | test_cost = 141397.464 | time = 17.581
+Epoch 17/20 | train_cost = 150141.154 | test_cost = 141403.337 | time = 20.916
+Epoch 18/20 | train_cost = 150104.787 | test_cost = 141407.571 | time = 15.636
+Epoch 19/20 | train_cost = 150069.506 | test_cost = 141412.265 | time = 18.218
+Epoch 20/20 | train_cost = 150039.265 | test_cost = 141422.542 | time = 20.479
