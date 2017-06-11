@@ -17,28 +17,28 @@ from tensorflow.python.ops import variable_scope as vs
 from time import gmtime, strftime
 
 # DISABLE TQDM, since it's fast enough to not need it at the moment
-def tqdm(l, desc = '', total = 42, *args):
-    return l
+# def tqdm(l, desc = '', total = 42, *args):
+#     return l
 
 def process_line(line):
     line = line.strip().split(' ')
     line = [float(x) for x in line]
     return line
 
-feats_dirs = ['../ATrampAbroad/feats_final']
-f0_files = ['../ATrampAbroad/pitches.txt']
+feats_dirs = ['../ATrampAbroad/feats_final', '../LifeOnTheMississippi/feats_final', '../TheAdventuresOfTomSawyer/feats_final', '../TheManThatCorruptedHadleyburg/feats_final']
+f0_files = ['../ATrampAbroad/pitches.txt', '../LifeOnTheMississippi/pitches.txt', '../TheAdventuresOfTomSawyer/pitches.txt', '../TheManThatCorruptedHadleyburg/pitches.txt']
 num_feats = 189
 
 class Config(object):
-    # num_features = num_numeric_features
     num_features = num_feats
-    batch_size = 10
-    num_epochs = 10
+    batch_size = 50
+    num_epochs = 40
     lr = 1.
-    lr_decay = .8
-    max_length = 50
-    cell_size = 128
-    regularization = 0
+    lr_decay = .85
+    max_length = 60
+    cell_size = 256
+    regularization = 1e-4
+    dev_percent = 0.2
 
 class OurModel():
     def add_placeholders(self):
@@ -50,38 +50,19 @@ class OurModel():
         self.seq_lens_placeholder = tf.placeholder(tf.int64, shape = (self.config.batch_size), name = 'seq_lens_placeholder')
         self.masks_placeholder = tf.placeholder(tf.bool, shape = (self.config.batch_size, self.config.max_length, 3), name = 'masks_placeholder')
 
-    def create_feed_dict(self, inputs_batch, labels_batch, seq_lens_batch, masks_batch):
+    def create_feed_dict(self, inputs_batch, seq_lens_batch, labels_batch = None, masks_batch = None):
         feed_dict = {
             self.inputs_placeholder: inputs_batch,
             self.seq_lens_placeholder: seq_lens_batch,
-            self.masks_placeholder: masks_batch
         } 
         if labels_batch is not None:
             feed_dict[self.labels_placeholder] = labels_batch
+        if masks_batch is not None:
+            feed_dict[self.masks_placeholder] = masks_batch
         return feed_dict
 
 
     def add_prediction_op(self):
-        '''
-        cell = tf.contrib.rnn.BasicLSTMCell(self.config.cell_size)
-        o, h = tf.nn.dynamic_rnn(cell = cell,
-                                 dtype = tf.float32,
-                                 sequence_length = self.seq_lens_placeholder,
-                                 inputs = self.inputs_placeholder
-                                 )
-        print self.inputs_placeholder # 10 x 30 x 2
-        print self.seq_lens_placeholder # 10
-        print self.labels_placeholder # 10 x 30 x 3
-        print o # 10 x 30 x 64: batch * length * cell
-        print h # tuple of 2x ? x 64?
-        assert False
-
-        o2 = tf.reshape(o, (-1, self.config.cell_size))
-        W = tf.get_variable('weight', shape = (self.config.cell_size, 3))
-        b = tf.get_variable('bias', shape = (self.config.batch_size * self.config.max_length, 3))
-        y = tf.reshape(tf.matmul(o2, W) + b, (self.config.batch_size, self.config.max_length, 3))
-        '''
-
         # https://github.com/tensorflow/tensorflow/issues/8191
         # cell = tf.contrib.rnn.BasicLSTMCell(self.config.cell_size, 
         #                                     reuse=tf.get_variable_scope().reuse)
@@ -94,16 +75,8 @@ class OurModel():
                                                inputs = self.inputs_placeholder,
                                                )
         fw_o, bw_o = o
-        fw_h, bw_h = h
+        # fw_h, bw_h = h
         o = tf.concat((fw_o, bw_o), 2)
-
-        # print self.inputs_placeholder # 10 x 30 x 2
-        # print self.seq_lens_placeholder # 10
-        # print self.labels_placeholder # 10 x 30 x 3
-        # print fw_o # 10, 30, 64
-        # print bw_o # 10, 30, 64
-        # print o # 10 x 30 x 128: batch * length * cell x 2
-        # assert False 
 
         o2 = tf.reshape(o, (-1, self.config.cell_size * 2))
         W = tf.get_variable('weight', shape = (self.config.cell_size * 2, 3))
@@ -117,20 +90,19 @@ class OurModel():
         masked_labels = tf.boolean_mask(self.labels_placeholder, self.masks_placeholder, name = 'masked_labels')
         masked_pred = tf.boolean_mask(self.pred, self.masks_placeholder, name = 'masked_pred')
         loss = tf.nn.l2_loss(tf.subtract(masked_labels, masked_pred))
-
-        # All non-bias trainable variables
-        # l2_cost = sum(tf.nn.l2_loss(v) for v in tf.trainable_variables() if 'bias' not in v.name)
         
         params = tf.trainable_variables()
-        # grads = tf.gradients(self.loss, params)
-        # self.global_norm = tf.global_norm(grads)
+        grads = tf.gradients(loss, params)
+        self.global_norm = tf.global_norm(grads, name = 'grad_norm')
         self.param_norm = sum(tf.nn.l2_loss(param) for param in params if len(param.get_shape()) >= 2)
-        
         
         self.loss = loss + self.config.regularization * self.param_norm
         self.base_loss = loss
+
         tf.summary.scalar("loss", self.loss)
-        # self.l2_cost = l2_cost
+        tf.summary.scalar('base loss', self.base_loss)
+        tf.summary.scalar('param norm', self.param_norm)
+        tf.summary.histogram('gradients', self.global_norm)
 
     def add_training_op(self):
         global_step = tf.Variable(0, trainable=False, name = 'epoch')
@@ -139,7 +111,6 @@ class OurModel():
                                         global_step = global_step, 
                                         decay_steps = 1,
                                         decay_rate = self.config.lr_decay)
-
         optimizer = tf.train.AdamOptimizer(lr)
         train_op = optimizer.minimize(self.loss)
         
@@ -149,8 +120,10 @@ class OurModel():
         self.merged_summary_op = tf.summary.merge_all()
 
     def train_on_batch(self, sess, train_inputs_batch, train_labels_batch, train_seq_len_batch, train_masks_batch):
-        feed = self.create_feed_dict(train_inputs_batch, train_labels_batch, train_seq_len_batch, train_masks_batch)
-        # batch_cost, summary = sess.run([self.loss, self.merged_summary_op], feed)
+        feed = self.create_feed_dict(train_inputs_batch, 
+                                     train_seq_len_batch, 
+                                     train_labels_batch, 
+                                     train_masks_batch)
 
         loss, _, summary, param_norm, base_loss = sess.run([self.loss, self.train_op, self.merged_summary_op, self.param_norm, self.base_loss], feed)
         return loss, base_loss, param_norm, summary
@@ -158,12 +131,26 @@ class OurModel():
     def increment_epoch(self, sess):
         sess.run([self.global_step_increment], {})
 
-    def test_on_batch(self, sess, test_inputs_batch, test_labels_batch, test_seq_len_batch, test_masks_batch):
-        feed = self.create_feed_dict(test_inputs_batch, test_labels_batch, test_seq_len_batch, test_masks_batch)
+    def dev_on_batch(self, sess, dev_inputs_batch, dev_labels_batch, dev_seq_len_batch, dev_masks_batch):
+        feed = self.create_feed_dict(dev_inputs_batch, 
+                                     dev_seq_len_batch, 
+                                     dev_labels_batch, 
+                                     dev_masks_batch)
         loss, base_loss, param_norm = sess.run([self.loss, self.base_loss, self.param_norm], feed)
 
         return loss, base_loss, param_norm
+    def test_on_batch(self, sess, test_inputs_batch, test_labels_batch, test_seq_lens_batch, test_masks_batch):
+        feed = self.create_feed_dict(inputs_batch = test_inputs_batch, 
+                                     seq_lens_batch = test_seq_lens_batch, 
+                                     labels_batch = test_labels_batch, 
+                                     masks_batch = test_masks_batch)
+        loss, param_norm, pred = sess.run([self.loss, self.param_norm, self.pred], feed)
 
+        return loss, param_norm, pred
+    def predict_on_batch(self, sess, inputs_batch, seq_lens_batch):
+        feed = self.create_feed_dict(inputs_batch, seq_lens_batch)
+        pred = sess.run([self.pred], feed)[0]
+        return pred
 
     def __init__(self, config):
         self.config = config
@@ -177,11 +164,11 @@ class OurModel():
         self.add_training_op()
 
 
-# force it to be max_feats length, pad the rest with zeros
+# force elems to be configs.max_length length, pad the rest with zeros
 def pad(elems, config):
     return np.append(elems, np.zeros((config.max_length, elems.shape[1])), 0)[:config.max_length, :]
 
-# because it hates me
+# because it hates me, and I don't know a better way of doing this
 def stack_on(stack, element):
     if stack.shape[0] == 0:
         return element
@@ -191,7 +178,7 @@ def stack_on(stack, element):
 def batch_feats(config, feats_dirs):
     inputs = np.array([])
     length = np.array([])
-    final_feats = []
+    feats_counts = []
     for feats_dir in feats_dirs:
         num_files = len(os.listdir(feats_dir))
         set_inputs = np.zeros((num_files, config.max_length, num_feats))
@@ -205,29 +192,30 @@ def batch_feats(config, feats_dirs):
             set_length[idx] = min(elems.shape[0], config.max_length)
         inputs = stack_on(inputs, set_inputs)
         length = stack_on(length, set_length)
-        final_feats += [feats.split('/')[-1].split('.')[0]]
+        feats_counts += [num_files]
     batched_inputs = []
     batched_length = []
     for i in range(0, inputs.shape[0] - config.batch_size, config.batch_size):
         batched_inputs.append(inputs[i:i + config.batch_size])
         batched_length.append(length[i:i + config.batch_size])
-    return np.array(batched_inputs), np.array(batched_length), final_feats
+    return np.array(batched_inputs), np.array(batched_length), feats_counts
 
-def batch_f0(config, f0_files, final_feats):
+def batch_f0(config, f0_files, feats_counts):
     labels = np.array([])
     masks = np.array([])
     for idx, f0_file in enumerate(f0_files):
+        num_feats = feats_counts[idx]
         with open(f0_file) as f:
             num_lines = sum(1 for line in f) - 1
-        set_labels = np.zeros((num_lines, config.max_length, 3))
-        set_masks = np.zeros((num_lines, config.max_length, 3))
+        set_labels = np.zeros((num_feats, config.max_length, 3))
+        set_masks = np.zeros((num_feats, config.max_length, 3))
         with open(f0_file) as f:
             f.next() # skip first line
             curr_file = ''
             curr_file_number = 0
-            for line in tqdm(f, total = num_lines, desc = 'Batching f0s'):
-                line = line.strip().split('\t')
-                new_file = line[0][-11:]
+            for file_line in tqdm(f, total = num_lines, desc = 'Batching f0s'):
+                line = file_line.strip().split('\t')
+                new_file = line[0][-11:] # '' if line is empty
                 nums = []
                 elem_mask = []
                 for x in line[5:8]:
@@ -237,19 +225,19 @@ def batch_f0(config, f0_files, final_feats):
                     except ValueError: # undefined
                         nums.append(0)
                         elem_mask.append(0)
-                if curr_file != new_file:
-                    if curr_file == final_feats[idx]:
-                        break
-                    if curr_file != '':
+                if curr_file != new_file: # end of reading
+                    if curr_file != '': # if current is not empty, add
                         padded_elems = pad(elems, config)
                         padded_mask = pad(mask, config)
                         set_labels[curr_file_number] = padded_elems
                         set_masks[curr_file_number] = padded_mask
                         curr_file_number += 1
-                    curr_file = new_file
-                    elems = np.array([nums])
+                    elems = np.array([nums]) #initialize
                     mask = np.array([elem_mask])
-                else:
+                    curr_file = new_file
+                    if curr_file_number == num_feats:
+                        break # all done
+                else: # just append for current file
                     elems = np.append(elems, [nums], 0)
                     mask = np.append(mask, [elem_mask], 0)
         labels = stack_on(labels, set_labels)
@@ -261,22 +249,109 @@ def batch_f0(config, f0_files, final_feats):
         batched_masks.append(masks[i:i + config.batch_size])
     return np.array(batched_labels), np.array(batched_masks)
 
-def test():
+def evaluate(model_location):
+    config = Config()
+    global_start = time.time()
+
+    feats_dir = '../ATrampAbroad/feats_final_test'
+    f0_file = '../ATrampAbroad/pitches_test.txt'
+    predictions_dir = '../ATrampAbroad/predictions'
+
+    batched_inputs, batched_length, feats_counts = batch_feats(config, [feats_dir])
+    batched_labels, batched_masks = batch_f0(config, [f0_file], feats_counts)
+
+    num_test = len(batched_inputs)
+    test_scale = num_test * config.batch_size
+    print 'Batched in {:3f}'.format(time.time() - global_start)
+    outfiles = [x.split('.')[0] + '.txt' for x in os.listdir(feats_dir)]
+    with tf.Graph().as_default():
+        start = time.time()
+        model = OurModel(config)
+        init = tf.global_variables_initializer()
+        saver = tf.train.Saver(max_to_keep = 1, #default 5
+                               pad_step_number = True, # so that alphasort of models works
+                               )
+        with tf.Session() as sess:
+            sess.run(init)
+            saver.restore(sess, model_location)
+            print 'Model initialized in {:.3f}'.format(time.time() - start)
+
+            test_cost = 0
+            test_param = 0
+            out_idx = 0
+            for batch_idx in tqdm(range(num_test), desc='Testing'):
+                inputs = batched_inputs[batch_idx]
+                labels = batched_labels[batch_idx]
+                length = batched_length[batch_idx]
+                masks = batched_masks[batch_idx]
+                loss, param, pred = model.test_on_batch(sess, inputs, labels, length, masks)
+                test_cost += loss
+                test_param += param
+                for i, x in enumerate(pred):
+                    outfile = os.path.join(predictions_dir, outfiles[out_idx])
+                    l = length[i]
+                    with open(outfile, 'w') as f:
+                        for j, line in enumerate(x):
+                            if j >= l:
+                                break
+                            f.write('{:.8f}\t{:.8f}\t{:.8f}\n'.format(line[0], line[1], line[2]))
+                    out_idx += 1
+            test_cost /= test_scale
+            test_param /= test_scale
+        print 'test cost {:.3f} | test param {:.3f}'.format(test_cost, test_param)
+
+def predict(model_location):
+    config = Config()
+    global_start = time.time()
+
+    feats_dir = '../test/feats_final'
+    predictions_dir = '../test/predictions'
+
+    batched_inputs, batched_length, feats_counts = batch_feats(config, [feats_dir])
+
+    num_test = len(batched_inputs)
+    test_scale = num_test * config.batch_size
+    print 'Batched in {:3f}'.format(time.time() - global_start)
+    outfiles = [x.split('.')[0] + '.txt' for x in os.listdir(feats_dir)]
+    with tf.Graph().as_default():
+        start = time.time()
+        model = OurModel(config)
+        init = tf.global_variables_initializer()
+        saver = tf.train.Saver(max_to_keep = 1, #default 5
+                               pad_step_number = True, # so that alphasort of models works
+                               )
+        with tf.Session() as sess:
+            sess.run(init)
+            saver.restore(sess, model_location)
+            print 'Model initialized in {:.3f}'.format(time.time() - start)
+
+            out_idx = 0
+            for batch_idx in tqdm(range(num_test), desc='Predicting'):
+                inputs = batched_inputs[batch_idx]
+                length = batched_length[batch_idx]
+                pred = model.predict_on_batch(sess, inputs, length)
+                for i, x in enumerate(pred):
+                    outfile = os.path.join(predictions_dir, outfiles[out_idx])
+                    with open(outfile, 'w') as f:
+                        l = length[i]
+                        for j, line in enumerate(x):
+                            if j >= l:
+                                break
+                            f.write('{:.8f}\t{:.8f}\t{:.8f}\n'.format(line[0], line[1], line[2]))
+                    out_idx += 1
+
+
+def train():
     config = Config()
 
     global_start = time.time()
     print 'Batching data...'
-    batched_inputs, batched_length, final_feats = batch_feats(config, feats_dirs)
-    # print batched_inputs.shape # 375 10 80 189
-    # print batched_length.shape # 375 10
-    # print 'final feats:', final_feats
-    batched_labels, batched_masks = batch_f0(config, f0_files, final_feats)
-    # print batched_labels.shape # 375 10 80 3
-    # print batched_masks.shape # 375 10 80 3
+    batched_inputs, batched_length, feats_counts = batch_feats(config, feats_dirs)
+    batched_labels, batched_masks = batch_f0(config, f0_files, feats_counts)
 
     num_batches = len(batched_inputs)
-    num_dev = int(0.1 * num_batches)
-    dev_idxs = np.random.choice(num_batches, num_dev)
+    num_dev = int(config.dev_percent * num_batches)
+    dev_idxs = np.random.choice(num_batches, num_dev, replace = False)
     train_idxs = list(set(range(num_batches)) - set(dev_idxs))
     num_train = len(train_idxs)
 
@@ -291,6 +366,8 @@ def test():
     dev_masks = batched_masks[dev_idxs]
     print 'Batched in {:3f}'.format(time.time() - global_start)
 
+    print '{} batches of size {}, {} training, {} dev'.format(num_batches, config.batch_size, num_train, num_dev)
+
     train_scale = num_train * config.batch_size
     dev_scale = num_dev * config.batch_size
 
@@ -302,11 +379,9 @@ def test():
                                pad_step_number = True, # so that alphasort of models works
                                )
 
-
         with tf.Session() as sess:
             start = time.time()
             sess.run(init)
-            # train_writer = tf.summary.FileWriter('train', sess.graph)
             if load_from_file is not None:
                 saver.restore(sess, load_from_file)
 
@@ -316,74 +391,74 @@ def test():
             global_start = time.time()
             step = 0
             for epoch in range(config.num_epochs):
-                train_base_loss = 0
                 train_cost = 0
-                train_param = 0
                 start = time.time()
-
-                for batch_idx in tqdm(range(num_train), desc = 'Train'):
+                l = list(range(num_train))
+                random.shuffle(l)
+                for batch_idx in tqdm(l, desc = 'Train'):
                     inputs = train_inputs[batch_idx]
                     labels = train_labels[batch_idx]
                     length = train_length[batch_idx]
                     masks = train_masks[batch_idx]
-                    loss, base_loss, param, summary = model.train_on_batch(sess, inputs, labels, length, masks)
+                    loss, _, _, summary = model.train_on_batch(sess, inputs, labels, length, masks)
                     train_cost += loss
-                    train_param += param
-                    train_base_loss += base_loss
                     train_writer.add_summary(summary, step)
                     step += 1
                 train_cost /= train_scale
-                train_param /= train_scale
-                train_base_loss /= train_scale
 
                 dev_cost = 0
                 dev_param = 0
-                dev_base_loss = 0
                 for batch_idx in tqdm(range(num_dev), desc = 'Dev'):
                     inputs = dev_inputs[batch_idx]
                     labels = dev_labels[batch_idx]
                     length = dev_length[batch_idx]
                     masks = dev_masks[batch_idx]
-                    loss, base_loss, param = model.test_on_batch(sess, inputs, labels, length, masks)
+                    loss, _, param = model.dev_on_batch(sess, inputs, labels, length, masks)
                     dev_cost += loss
                     dev_param += param
-                    dev_base_loss += base_loss
                 dev_cost /= dev_scale
                 dev_param /= dev_scale
-                dev_base_loss /= dev_scale
 
-                print "Epoch {}/{} | train_cost = {:.3f} ({:.3f} w/o reg)| dev_cost = {:.3f} ({:.3f} w/o reg)| train_param = {:.3f} | dev_param = {:.3f} | time = {:.3f}".format(epoch + 1, config.num_epochs, train_cost, train_base_loss, dev_cost, dev_base_loss, train_param, dev_param, time.time() - start)
+                print "Epoch {}/{} | train_cost = {:.3f} | dev_cost = {:.3f} | param = {:.3f} | time = {:.3f}".format(epoch + 1, config.num_epochs, train_cost, dev_cost, dev_param, time.time() - start)
 
                 model.increment_epoch(sess)
 
                 saver.save(sess, logs_path, global_step = epoch + 1 + last_model_number)
     # print 'total duration: {:.3f}'.format(time.time() - global_start)
 
-model_name = 'many_features'
-model_dir = os.path.join('..', 'model')
-save_to_file = os.path.join(model_dir, model_name)
-models = [file for file in os.listdir(model_dir) if model_name in file and '.index' in file]
+# model_name = 'model'
+# model_dir = os.path.join('..', 'model')
+# save_to_file = os.path.join(model_dir, model_name)
+# models = [file for file in os.listdir(model_dir) if model_name in file and '.index' in file]
 
-# Set True to force it to make a new model
-# probably better to just do a new name
-new_model = True 
-load_from_file = None
-last_model_number = 0
+# # Set True to force it to make a new model
+# # probably better to just do a new name
+# new_model = True 
+# load_from_file = None
+# last_model_number = 0
 
-if new_model or len(models) == 0:
-    print 'New model, no loading'
-else:
-    last_model = max(models)
-    last_model_name = last_model.split('.')[0]
-    last_model_number = int(last_model_name.split('-')[-1])
-    load_from_file = os.path.join(model_dir, last_model_name)
-    print 'Loading from' + load_from_file
-    print 'starting saving from checkpoint ' + str(1 + last_model_number)
+# if new_model or len(models) == 0:
+#     print 'New model, no loading'
+# else:
+#     last_model = max(models)
+#     last_model_name = last_model.split('.')[0]
+#     last_model_number = int(last_model_name.split('-')[-1])
+#     load_from_file = os.path.join(model_dir, last_model_name)
+#     print 'Loading from' + load_from_file
+#     print 'starting saving from checkpoint ' + str(1 + last_model_number)
 
-logs_path = os.path.join('..', 'tensorboard', strftime("%Y_%m_%d_%H_%M_%S", gmtime()))
+# logs_path = os.path.join('..', 'tensorboard', strftime("%Y_%m_%d_%H_%M_%S", gmtime()))
+
+model_path = os.path.join('..', 'tensorboard', '2017_06_09_22_50_20-00000040')
 
 if __name__ == '__main__':
-    test()
+
+    # print 'logging to', logs_path
+    # train()
+    
+    # evaluate(model_path)
+
+    predict(model_path)
 
 
 

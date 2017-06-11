@@ -3,80 +3,104 @@ import os
 import numpy as np
 
 
-with open('dump.txt') as f:
-    stack = np.vstack([line.strip().split(' ') for line in f])
-num_feats = stack.shape[1]
-for i in range(num_feats):
-    possible = set(stack[:, i])
-    try:
-        [float(x) for x in possible]
-        print len(possible), 'numbers', (possible if len(possible) < 10 else '')
-    except ValueError:
-        print possible
+feats_dirs = ['../ATrampAbroad/feats_test', '../LifeOnTheMississippi/feats', '../TheAdventuresOfTomSawyer/feats', '../TheManThatCorruptedHadleyburg/feats']
+
+# feats_dirs = ['../ATrampAbroad/feats_test']
+
+def num_lines(file):
+    with open(file) as f:
+        s = sum(1 for line in f if line != '\n') 
+    return s
+
+# for feats_dir in ['../test/feats']:
+#     for file in os.listdir(feats_dir):
+#         if num_lines(os.path.join(feats_dir, file)) == 0:
+#             print feats_dir, file
+
+# part1 = ["Wanted, Chief Justice of the Massechusetts Supreme Court.",
+#          "In April, the S.J.C.'s current leader Edward Hennessy reaches the mandentory retirement age of seventy, and a successor is expected to be named in March.",
+#          "It may be the most important appointment Governor Michael Dukakis makes during the remainder of his administration and one of the toughest.",
+#          "As WBUR's Margo Melnicove reports, Hennessy will be a hard act to follow."
+#          ]
+# part2 = ["In nineteen-seventy-six Democratic Governor Michael Dukakis fulfilled a campaign promise to de-politicize judicial appointments.",
+#          "He named Republican Edward hennessy to head the State Supreme Judicial Court.",
+#          "For Hennessy, it was another step along a distinguished career that began as a trial lawyer and led to an appointment as an associate Supreme Court Justice in nineteen-seventy-one.",
+#          "That year Thomas Maffy, now president of the Massachusetts Bar association, was Hennessy's law clerk."]
+# with open('../test/test_index.txt', 'w') as f:
+#     for i in range(8):
+#         for idx, sent in enumerate(part1):
+#             f.write("chp{}1_{:05d}\t1\t{}/{}\t0\t0\t{}\n".format(i, idx + 1, idx + 1, len(part1), sent))
+#         for idx, sent in enumerate(part2):
+#             f.write("chp{}2_{:05d}\t2\t{}/{}\t0\t0\t{}\n".format(i, idx + 1, idx + 1, len(part2), sent))
+
+# for file in os.listdir('../test/features'):
+#     with open(os.path.join('../test/features', file)) as f:
+#         with open(os.path.join('../test/features', file.split('.')[0] + '.txt'), 'w') as g:
+#             for line in f:
+#                 line = line.strip().split(' ')
+#                 syl_duration = line[2]
+#                 g.write(syl_duration + '\n')
 
 
 
-'''
-R:SylStructure.daughter1.name segment_names
-R:SylStructure.daughtern.name segment_names
-R:SylStructure.daughter1.seg_coda_fric 0,1
-R:SylStructure.daughtern.seg_coda_fric 0,1
-R:SylStructure.daughter1.seg_onset_stop 0,1
-R:SylStructure.daughtern.seg_onset_stop 0,1
-R:SylStructure.daughter1.segment_duration float
-R:SylStructure.daughtern.segment_duration float
-R:SylStructure.daughter1.syl_final 0, 1
-accented: 0
-pos_in_word some ints
-position_type set(['single', 'initial', 'mid', 'final'])
-stress 0, 1
-syl_accent set(['L+H*', 'NONE', 'L-L%', '!H*', 'multi', 'H*', 'L-H%', 'H-H%'])
-syl_break 0 to 4
-syl_coda_type set(['+S', '-V', '+V-S'])
-syl_numphones numbers
-syl_codasize numbers 
-syl_onset_type set(['+S', '-V', '+V-S'])
-syllable_duration floats
-tobi_accent accents
-tobi_endtone accents
-R:SylStructure.parent.blevel 0 to 4
-R:SylStructure.parent.cap 0, 1
-R:SylStructure.parent.contentp 0, 1
-R:SylStructure.parent.gpos set(['pps', 'md', 'cc', 'wp', 'det', 'content', 'to', 'in', 'aux'])
-R:SylStructure.parent.pbreak set(['NB', 'B', 'BB'])
-R:SylStructure.parent.pbreak_score 0?
-R:SylStructure.parent.pos set(['vb', 'cc', 'jjs', 'jjr', 'cd', 'prp', 'in', 'nns', 'nnp', 'nnps', 'wrb', 'nn', '1', 'to', '2', 'ls', 'rb', 'rbr', 'fw', 'punc', 'sym', 'pos', 'jj', 'wp', 'rp', 'dt', 'md', 'vbg', 'vbd', 'of', 'pdt', 'rbs', 'vbn', 'vbp', 'wdt', 'uh', 'vbz', 'ex'])
-R:SylStructure.parent.pos_score 0?
-R:SylStructure.parent.word_break skip?
-R:SylStructure.parent.word_duration float
-R:SylStructure.parent.word_numsyls count
-R:SylStructure.parent.R:Token.parent.prepunctuation set(['"\'', '""', "'", '(', "('", "''", '"', "['", '\'"', '{', '['])
-R:SylStructure.parent.R:Token.parent.punc set([');', '!"', "!'", ':]', "';", '),', ').', ".'", "'.]}", '!', ",'", '"', '.,', "'", '!...', ')', '."', ',', '.', '0', '.;', "'.'", ".']}", ';', ':', '?', '...', '""', '.)', ';"', ";'", ',)', "?'", ',"', '!{', '."\'', '?"', '.]}', '!"\'', "',", ']}', '!....', '.]'])
-'''
+l = [num_lines(os.path.join(feats_dir, f)) for feats_dir in feats_dirs for f in os.listdir(feats_dir) ]
+
+nums = list(set(l))
+counts = {x : l.count(x) for x in nums}
+pairs = zip(*counts.items())
+# plt.scatter(*pairs)
+
+plt.hist(l, range(0, max(nums), 4))
+
+print sum(1. for x in l if x <= 60) / len(l)
 
 
-# feats_dir = '../ATrampAbroad/feats'
+plt.title('Syllable Counts')
+plt.ylim(ymin = 0)
+plt.xlim(xmin = 0)
+plt.xlabel('num syllables')
+plt.ylabel('num sentences')
+plt.show()
 
-# def num_lines(file):
+# def get_pitch_chps(file):
+#     curr_file = ''
+#     l = []
 #     with open(file) as f:
-#         s = sum(1 for line in f if line != '\n') 
-#     return s
+#         f.next()
+#         for line in f:
+#             line = line.strip().split('\t')
+#             new_file = line[0][-11:] 
+#             if curr_file != new_file:
+#                 curr_file = new_file
+#                 l += [curr_file.split('.')[0]]
+#     return l
 
-# l = [num_lines(os.path.join(feats_dir, f)) for f in os.listdir(feats_dir)]
-
-# nums = list(set(l))
-# counts = {x : l.count(x) for x in nums}
-# pairs = zip(*counts.items())
-# # plt.scatter(*pairs)
-
-# plt.hist(l, range(0, 140, 5))
-
-# plt.title('Syllable Counts')
-# plt.ylim(ymin = 0)
-# plt.xlim(xmin = 0)
-# plt.xlabel('num syllables')
-# plt.ylabel('num sentences')
+# train_costs = []
+# dev_costs = []
+# param_norms = []
+# with open('log.txt') as f:
+#     for line in f:
+#         if line == 'randomized training order\n':
+#             break
+#     for line in f:
+#         # if line == 'randomized training order\n':
+#         #     break
+#         line = line.strip().split('|')
+#         if line[0][:5] != 'Epoch':
+#             continue
+#         train_costs += [float(line[1].strip().split(' ')[2])]
+#         dev_costs += [float(line[2].strip().split(' ')[2])]
+#         param_norms += [float(line[3].strip().split(' ')[2])]
+# plt.plot(train_costs, label = 'train')
+# plt.plot(dev_costs, label = 'dev')
+# plt.legend()
+# plt.ylabel('Cost)')
+# # plt.plot(param_norms)
+# # plt.ylabel('Param norm')
+# plt.xlabel('Epoch')
 # plt.show()
+
+
 
 # with open('lr_example.txt') as f:
 #     name = ''

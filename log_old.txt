@@ -1,72 +1,181 @@
 Numeric 15 features, 30 chaps of Tramp
-    num_features = num_numeric_features
-    batch_size = 10
-    num_epochs = 20
-    lr = 0.0001
-    max_length = 50
-    cell_size = 64
-Epoch 20/20 | train_cost = 393237.085 | test_cost = 398782.402 | time = 19.694
-    cell_size = 32
-Epoch 20/20 | train_cost = 638361.911 | test_cost = 659486.179 | time = 15.922
-    cell_size = 128
-Epoch 20/20 | train_cost = 180862.202 | test_cost = 168119.907 | time = 33.100
-    cell_size = 32
-    max_length = 80
-Epoch 20/20 | train_cost = 664002.514 | test_cost = 610700.537 | time = 21.684
-    cell_size = 64
-    max_length = 80
-Epoch 20/20 | train_cost = 418037.541 | test_cost = 384099.702 | time = 23.217
-    cell_size = 128
-    max_length = 80
-Epoch 20/20 | train_cost = 188500.828 | test_cost = 182930.101 | time = 36.034
-NOTE: LR needs tuning. Still large jumps in cost per epoch, so can be increased a bunch, then probably needs decay. Epoch 20 results not too great to use (model can still improve a lot), but does give a good idea of what's going on
-    50, 64, 1e-3
-converged around epoch 10/20.
-Epoch 10/20 | train_cost = 149981.918 | test_cost = 158258.792 | time = 16.050
-Epoch 20/20 | train_cost = 149832.878 | test_cost = 158171.951 | time = 17.117
-    
-
-
-
-lr = 0.001 * .95
-50, 64
-Epoch 10/20 | train_cost = 151213.209 | test_cost = 152247.519 | time = 15.687
-Epoch 20/20 | train_cost = 150937.599 | test_cost = 152141.602 | time = 15.449
-80, 64
-Epoch 10/20 | train_cost = 157400.633 | test_cost = 146002.586 | time = 25.258
-Epoch 20/20 | train_cost = 157095.956 | test_cost = 145916.255 | time = 23.383
-100, 64
-Epoch 10/20 | train_cost = 157496.565 | test_cost = 153405.599 | time = 30.625
-Epoch 20/20 | train_cost = 157203.146 | test_cost = 153239.398 | time = 31.434
-50, 128
-Epoch 10/20 | train_cost = 150130.430 | test_cost = 159795.850 | time = 22.382
-Epoch 20/20 | train_cost = 149995.017 | test_cost = 159700.656 | time = 37.197
-
-+7 alpha features
     batch_size = 10
     num_epochs = 20
     lr = 0.001
-    lr_decay = .95
+    lr_decay = 1
     max_length = 80
     cell_size = 64
-Epoch 10/20 | train_cost = 154502.355 | test_cost = 181603.207 | time = 25.070
-Epoch 20/20 | train_cost = 154197.210 | test_cost = 181491.502 | time = 26.730
-    80, 128
-Epoch 10/20 | train_cost = 155854.032 | test_cost = 163708.426 | time = 47.786
-Epoch 20/20 | train_cost = 155760.572 | test_cost = 163656.376 | time = 44.158
+    regularization = 0
+Epoch 10/20 | train_cost = 247518.965 (247518.965 w/o reg)| dev_cost = 281128.215 (281128.215 w/o reg)| train_param = 236.921 | dev_param = 252.960 | time = 23.603
+Epoch 20/20 | train_cost = 243025.981 (243025.981 w/o reg)| dev_cost = 275806.072 (275806.072 w/o reg)| train_param = 728.695 | dev_param = 759.704 | time = 31.112
+0.01 decay
+Epoch 10/20 | train_cost = 212524.369 (212524.369 w/o reg)| dev_cost = 233520.363 (233520.363 w/o reg)| train_param = 13286.912 | dev_param = 14575.650 | time = 23.230
+.1 decay
+Epoch 4/20 | train_cost = 140488.522 (140488.522 w/o reg)| dev_cost = 149483.028 (149483.028 w/o reg)| train_param = 143948.741 | dev_param = 178593.250 | time = 28.838
+1 decay
+Epoch 1/20 | train_cost = 139560.982 (139560.982 w/o reg)| dev_cost = 67578.162 (67578.162 w/o reg)| train_param = 350583.748 | dev_param = 747022.700 | time = 30.894
+Epoch 2/20 | train_cost = 56045.426 (56045.426 w/o reg)| dev_cost = 47472.664 (47472.664 w/o reg)| train_param = 1126271.077 | dev_param = 1351215.200 | time = 30.723
+Epoch 3/20 | train_cost = 48647.571 (48647.571 w/o reg)| dev_cost = 46183.504 (46183.504 w/o reg)| train_param = 1504146.332 | dev_param = 1546506.300 | time = 30.421
+Epoch 4/20 | train_cost = 48101.169 (48101.169 w/o reg)| dev_cost = 46147.814 (46147.814 w/o reg)| train_param = 1614991.862 | dev_param = 1596854.500 | time = 28.532
+Epoch 5/20 | train_cost = 48095.817 (48095.817 w/o reg)| dev_cost = 46173.893 (46173.893 w/o reg)| train_param = 1644487.278 | dev_param = 1608876.000 | time = 27.347
+Epoch 6/20 | train_cost = 48132.368 (48132.368 w/o reg)| dev_cost = 46193.637 (46193.637 w/o reg)| train_param = 1652774.355 | dev_param = 1611426.800 | time = 32.215
+Epoch 7/20 | train_cost = 48163.603 (48163.603 w/o reg)| dev_cost = 46207.593 (46207.593 w/o reg)| train_param = 1655512.480 | dev_param = 1611695.100 | time = 31.283
+Epoch 8/20 | train_cost = 48186.463 (48186.463 w/o reg)| dev_cost = 46217.813 (46217.813 w/o reg)| train_param = 1656648.615 | dev_param = 1611448.600 | time = 28.098
+1 * .8^e
+Model initialized in 0.674
+Epoch 1/20 | train_cost = 143289.557 (143289.557 w/o reg)| dev_cost = 55444.873 (55444.873 w/o reg)| train_param = 341106.096 | dev_param = 729775.100 | time = 37.225
+Epoch 2/20 | train_cost = 56146.537 (56146.537 w/o reg)| dev_cost = 36822.907 (36822.907 w/o reg)| train_param = 1058110.671 | dev_param = 1268666.200 | time = 32.545
+Epoch 3/20 | train_cost = 46601.475 (46601.475 w/o reg)| dev_cost = 35041.140 (35041.140 w/o reg)| train_param = 1413138.746 | dev_param = 1475654.400 | time = 33.064
+Epoch 4/20 | train_cost = 44768.358 (44768.358 w/o reg)| dev_cost = 34854.217 (34854.217 w/o reg)| train_param = 1545393.501 | dev_param = 1556105.200 | time = 32.714
+Epoch 5/20 | train_cost = 44201.738 (44201.738 w/o reg)| dev_cost = 34770.122 (34770.122 w/o reg)| train_param = 1597696.075 | dev_param = 1591864.200 | time = 31.789
+Epoch 6/20 | train_cost = 44145.104 (44145.104 w/o reg)| dev_cost = 35042.703 (35042.703 w/o reg)| train_param = 1620793.750 | dev_param = 1610052.300 | time = 31.549
 
-l2 regularization
-reg factor 0 (none)
-Epoch 10/20 | train_cost = 156254.683 (156254.683 w/o reg)| dev_cost = 159740.401 (159740.401 w/o reg)| train_param = 141.741 | dev_param = 143.798 | time = 69.419
-Epoch 20/20 | train_cost = 156161.444 (156161.444 w/o reg)| dev_cost = 159684.889 (159684.889 w/o reg)| train_param = 181.267 | dev_param = 183.406 | time = 55.154
-factor 1
-Epoch 10/20 | train_cost = 154673.603 (154566.845 w/o reg)| dev_cost = 174765.615 (174658.965 w/o reg)| train_param = 106.759 | dev_param = 106.647 | time = 40.006
-Epoch 20/20 | train_cost = 154064.571 (153965.391 w/o reg)| dev_cost = 174143.226 (174044.601 w/o reg)| train_param = 99.180 | dev_param = 98.620 | time = 60.474
-factor 10
+    batch_size = 10
+    num_epochs = 10
+    lr = 1.
+    lr_decay = .8
+    max_length = 80
+    cell_size = 64
+    regularization = 0
+Epoch 5/10 | train_cost = 44535.757 (44535.757 w/o reg)| dev_cost = 37620.451 (37620.451 w/o reg)| train_param = 1620045.873 | dev_param = 1614833.900 | time = 30.032    
+Epoch 10/10 | train_cost = 43571.569 (43571.569 w/o reg)| dev_cost = 36734.044 (36734.044 w/o reg)| train_param = 1665725.209 | dev_param = 1658432.800 | time = 34.297
+    50 64
+Epoch 5/10 | train_cost = 41389.375 (41389.375 w/o reg)| dev_cost = 34380.111 (34380.111 w/o reg)| train_param = 1099296.599 | dev_param = 1088160.800 | time = 23.616
+Epoch 10/10 | train_cost = 40673.378 (40673.378 w/o reg)| dev_cost = 33879.710 (33879.710 w/o reg)| train_param = 1111025.121 | dev_param = 1105155.100 | time = 25.299
+    50 128
 
-factor 100
-Epoch 10/20 | train_cost = 158616.324 | dev_cost = 168791.736 | train_param = 29.126 | dev_param = 29.117 | time = 53.358
-Epoch 20/20 | train_cost = 157834.566 | dev_cost = 168110.618 | train_param = 27.574 | dev_param = 27.547 | time = 49.043
+
+Full features
+19 Numeric features, 13 alpha features, for a feature size of 189
+    batch_size = 10
+    num_epochs = 10
+    lr = 1.
+    lr_decay = .8
+    max_length = 50
+    cell_size = 128
+    regularization = 0
+Epoch 1/10 | train_cost = 129158.697 (129158.697 w/o reg)| dev_cost = 59728.429 (59728.429 w/o reg)| train_param = 662612.821 | dev_param = 960280.400 | time = 33.868
+Epoch 2/10 | train_cost = 56067.480 (56067.480 w/o reg)| dev_cost = 43337.119 (43337.119 w/o reg)| train_param = 1178989.352 | dev_param = 1309247.400 | time = 35.638
+Epoch 3/10 | train_cost = 47875.451 (47875.451 w/o reg)| dev_cost = 41100.604 (41100.604 w/o reg)| train_param = 1391365.362 | dev_param = 1417705.400 | time = 35.278
+Epoch 4/10 | train_cost = 44756.333 (44756.333 w/o reg)| dev_cost = 40983.082 (40983.082 w/o reg)| train_param = 1455084.418 | dev_param = 1452870.400 | time = 35.969
+Epoch 5/10 | train_cost = 42388.379 (42388.379 w/o reg)| dev_cost = 40577.856 (40577.856 w/o reg)| train_param = 1476422.060 | dev_param = 1467111.600 | time = 35.134
+Epoch 6/10 | train_cost = 41401.537 (41401.537 w/o reg)| dev_cost = 40275.858 (40275.858 w/o reg)| train_param = 1484589.018 | dev_param = 1474461.200 | time = 35.842
+Epoch 7/10 | train_cost = 40747.390 (40747.390 w/o reg)| dev_cost = 40010.151 (40010.151 w/o reg)| train_param = 1488305.577 | dev_param = 1478481.800 | time = 37.051
+Epoch 8/10 | train_cost = 40434.664 (40434.664 w/o reg)| dev_cost = 40466.904 (40466.904 w/o reg)| train_param = 1489897.472 | dev_param = 1481382.400 | time = 34.072
+Epoch 9/10 | train_cost = 40638.504 (40638.504 w/o reg)| dev_cost = 42970.416 (42970.416 w/o reg)| train_param = 1490528.055 | dev_param = 1483047.700 | time = 36.285
+Epoch 10/10 | train_cost = 40812.735 (40812.735 w/o reg)| dev_cost = 45804.927 (45804.927 w/o reg)| train_param = 1490652.980 | dev_param = 1484242.800 | time = 36.144
+regularization = 1e-5
+Epoch 1/10 | train_cost = 128287.847 (128281.453 w/o reg)| dev_cost = 65490.930 (65481.748 w/o reg)| train_param = 639523.397 | dev_param = 918228.700 | time = 61.921
+Epoch 2/10 | train_cost = 55739.594 (55728.437 w/o reg)| dev_cost = 42350.010 (42337.694 w/o reg)| train_param = 1115700.840 | dev_param = 1231617.200 | time = 44.302
+Epoch 3/10 | train_cost = 47644.906 (47631.883 w/o reg)| dev_cost = 40671.664 (40658.495 w/o reg)| train_param = 1302300.875 | dev_param = 1316917.200 | time = 45.469
+Epoch 4/10 | train_cost = 43539.154 (43525.704 w/o reg)| dev_cost = 39009.738 (38996.417 w/o reg)| train_param = 1345046.494 | dev_param = 1332042.400 | time = 58.130
+Epoch 5/10 | train_cost = 41687.383 (41673.904 w/o reg)| dev_cost = 38529.718 (38516.421 w/o reg)| train_param = 1347917.921 | dev_param = 1329601.600 | time = 62.938
+Epoch 6/10 | train_cost = 40824.493 (40811.085 w/o reg)| dev_cost = 38495.651 (38482.420 w/o reg)| train_param = 1340797.158 | dev_param = 1323022.900 | time = 46.481
+Epoch 7/10 | train_cost = 40361.937 (40348.619 w/o reg)| dev_cost = 38572.931 (38559.771 w/o reg)| train_param = 1331765.622 | dev_param = 1316022.600 | time = 38.935
+Epoch 8/10 | train_cost = 40153.761 (40140.531 w/o reg)| dev_cost = 39036.268 (39023.174 w/o reg)| train_param = 1322998.828 | dev_param = 1309394.000 | time = 44.523
+Epoch 9/10 | train_cost = 40206.179 (40193.029 w/o reg)| dev_cost = 40829.945 (40816.913 w/o reg)| train_param = 1314955.415 | dev_param = 1303220.100 | time = 41.219
+Epoch 10/10 | train_cost = 40460.689 (40447.612 w/o reg)| dev_cost = 42877.250 (42864.275 w/o reg)| train_param = 1307664.155 | dev_param = 1297602.300 | time = 41.845
+regularization 1e-4
+Epoch 1/10 | train_cost = 132697.028 (132637.634 w/o reg)| dev_cost = 50703.578 (50619.867 w/o reg)| train_param = 593952.193 | dev_param = 837097.600 | time = 46.556
+Epoch 2/10 | train_cost = 55214.764 (55113.116 w/o reg)| dev_cost = 42095.766 (41984.809 w/o reg)| train_param = 1016477.542 | dev_param = 1109565.900 | time = 43.712
+Epoch 3/10 | train_cost = 46681.814 (46564.898 w/o reg)| dev_cost = 38721.269 (38603.819 w/o reg)| train_param = 1169157.961 | dev_param = 1174496.400 | time = 46.107
+Epoch 4/10 | train_cost = 44891.014 (44771.243 w/o reg)| dev_cost = 35155.557 (35037.447 w/o reg)| train_param = 1197717.497 | dev_param = 1181098.600 | time = 50.172
+Epoch 5/10 | train_cost = 43204.994 (43085.641 w/o reg)| dev_cost = 34394.850 (34277.525 w/o reg)| train_param = 1193528.059 | dev_param = 1173248.300 | time = 38.500
+Epoch 6/10 | train_cost = 41912.469 (41794.254 w/o reg)| dev_cost = 34322.199 (34205.890 w/o reg)| train_param = 1182155.242 | dev_param = 1163079.800 | time = 42.886
+Epoch 7/10 | train_cost = 41291.166 (41174.160 w/o reg)| dev_cost = 34512.009 (34396.652 w/o reg)| train_param = 1170064.833 | dev_param = 1153576.400 | time = 56.649
+Epoch 8/10 | train_cost = 41021.624 (40905.643 w/o reg)| dev_cost = 35740.411 (35625.851 w/o reg)| train_param = 1159809.486 | dev_param = 1145595.900 | time = 52.336
+Epoch 9/10 | train_cost = 41142.757 (41027.695 w/o reg)| dev_cost = 39706.903 (39593.051 w/o reg)| train_param = 1150619.857 | dev_param = 1138516.400 | time = 49.929
+Epoch 10/10 | train_cost = 41574.069 (41459.799 w/o reg)| dev_cost = 42871.970 (42758.726 w/o reg)| train_param = 1142701.102 | dev_param = 1132447.200 | time = 49.390
+
++ Life on the mississippi
+batch 10
+Train: 100%|████████████████████████████████| 972/972 [01:59<00:00,  8.81it/s]
+Dev: 100%|██████████████████████████████████| 107/107 [00:03<00:00, 29.14it/s]
+Epoch 1/10 | train_cost = 43622.485 (43550.849 w/o reg)| dev_cost = 154049.190 (153976.258 w/o reg)| train_param = 716361.997 | dev_param = 729290.200 | time = 123.321
+batch 20
+Train: 100%|████████████████████████████████| 487/487 [01:23<00:00,  6.64it/s]
+Dev: 100%|████████████████████████████████████| 53/53 [00:02<00:00, 19.53it/s]
+Epoch 1/10 | train_cost = 53114.297 (53076.326 w/o reg)| dev_cost = 204923.103 (204881.849 w/o reg)| train_param = 379707.608 | dev_param = 412556.800 | time = 86.658
+
+full text
+batch 50, dev 10%
+Train: 100%|████████████████████████████████| 428/428 [02:34<00:00,  2.90it/s]
+Dev: 100%|████████████████████████████████████| 47/47 [00:06<00:00,  8.23it/s]
+Epoch 1/10 | train_cost = 34369.950 (34355.423 w/o reg)| dev_cost = 35160.842 (35145.872 w/o reg)| train_param = 145272.742 | dev_param = 149705.500 | time = 160.527
+Train: 100%|████████████████████████████████| 428/428 [02:31<00:00,  2.83it/s]
+Dev: 100%|████████████████████████████████████| 47/47 [00:06<00:00,  7.46it/s]
+Epoch 2/10 | train_cost = 32645.342 (32620.360 w/o reg)| dev_cost = 5736.852 (5710.943 w/o reg)| train_param = 249821.686 | dev_param = 259094.800 | time = 157.588
+Train: 100%|████████████████████████████████| 428/428 [02:32<00:00,  2.66it/s]
+Dev: 100%|████████████████████████████████████| 47/47 [00:06<00:00,  7.93it/s]
+Epoch 3/10 | train_cost = 16509.921 (16477.192 w/o reg)| dev_cost = 5233.846 (5200.487 w/o reg)| train_param = 327290.682 | dev_param = 333594.520 | time = 158.785
+Train: 100%|████████████████████████████████| 428/428 [02:32<00:00,  3.38it/s]
+Dev: 100%|████████████████████████████████████| 47/47 [00:05<00:00,  9.15it/s]
+Epoch 4/10 | train_cost = 14185.086 (14147.841 w/o reg)| dev_cost = 4754.057 (4716.462 w/o reg)| train_param = 372447.948 | dev_param = 375954.400 | time = 157.206
+Train: 100%|████████████████████████████████| 428/428 [02:17<00:00,  4.08it/s]
+Dev: 100%|████████████████████████████████████| 47/47 [00:04<00:00, 11.16it/s]
+Epoch 5/10 | train_cost = 13251.385 (13211.689 w/o reg)| dev_cost = 4556.363 (4516.485 w/o reg)| train_param = 396955.769 | dev_param = 398773.880 | time = 141.766
+
+    batch_size = 50
+    num_epochs = 20
+    lr = 1.
+    lr_decay = .5
+    max_length = 50
+    cell_size = 128
+    regularization = 1e-4
+    dev_percent = 0.2
+2017_06_09_08_36_36/train
+Train: 100%|████████████████████████████████| 382/382 [02:17<00:00,  2.91it/s]
+Dev: 100%|████████████████████████████████████| 94/94 [00:12<00:00,  7.69it/s]
+Epoch 1/20 | train_cost = 32082.801 (32069.561 w/o reg)| dev_cost = 86962.517 (86949.006 w/o reg)| train_param = 132395.842 | dev_param = 135101.680 | time = 149.863
+Train: 100%|████████████████████████████████| 382/382 [02:16<00:00,  2.75it/s]
+Dev: 100%|████████████████████████████████████| 94/94 [00:12<00:00,  6.91it/s]
+Epoch 2/20 | train_cost = 29437.125 (29415.629 w/o reg)| dev_cost = 19026.578 (19004.417 w/o reg)| train_param = 214961.490 | dev_param = 221604.640 | time = 149.692
+Train: 100%|████████████████████████████████| 382/382 [02:17<00:00,  2.82it/s]
+Dev: 100%|████████████████████████████████████| 94/94 [00:12<00:00,  8.46it/s]
+Epoch 3/20 | train_cost = 16932.919 (16905.123 w/o reg)| dev_cost = 15655.689 (15627.410 w/o reg)| train_param = 277963.795 | dev_param = 282791.080 | time = 149.863
+Train: 100%|████████████████████████████████| 382/382 [02:15<00:00,  3.33it/s]
+Dev: 100%|████████████████████████████████████| 94/94 [00:10<00:00,  9.73it/s]
+Epoch 4/20 | train_cost = 14742.251 (14710.773 w/o reg)| dev_cost = 15484.079 (15452.332 w/o reg)| train_param = 314781.829 | dev_param = 317465.360 | time = 145.919
+Train: 100%|████████████████████████████████| 382/382 [02:03<00:00,  3.87it/s]
+Dev: 100%|████████████████████████████████████| 94/94 [00:08<00:00, 10.51it/s]
+Epoch 5/20 | train_cost = 13894.088 (13860.575 w/o reg)| dev_cost = 13697.751 (13664.095 w/o reg)| train_param = 335132.176 | dev_param = 336559.040 | time = 132.251
+Train: 100%|████████████████████████████████| 382/382 [01:54<00:00,  3.31it/s]
+Dev: 100%|████████████████████████████████████| 94/94 [00:09<00:00,  9.98it/s]
+Epoch 6/20 | train_cost = 13257.313 (13222.734 w/o reg)| dev_cost = 13488.127 (13453.477 w/o reg)| train_param = 345783.383 | dev_param = 346495.720 | time = 124.298
+Train: 100%|████████████████████████████████| 382/382 [02:03<00:00,  3.36it/s]
+Dev: 100%|████████████████████████████████████| 94/94 [00:10<00:00,  9.43it/s]
+Epoch 7/20 | train_cost = 13041.131 (13005.990 w/o reg)| dev_cost = 13275.350 (13240.173 w/o reg)| train_param = 351405.885 | dev_param = 351767.000 | time = 133.310
+Train: 100%|████████████████████████████████| 382/382 [02:12<00:00,  2.95it/s]
+Dev: 100%|████████████████████████████████████| 94/94 [00:11<00:00,  9.35it/s]
+Epoch 8/20 | train_cost = 12789.208 (12753.784 w/o reg)| dev_cost = 13162.895 (13127.454 w/o reg)| train_param = 354236.056 | dev_param = 354406.760 | time = 143.815
+Train: 100%|████████████████████████████████| 382/382 [01:54<00:00,  2.95it/s]
+Dev: 100%|████████████████████████████████████| 94/94 [00:12<00:00,  6.08it/s]
+Epoch 9/20 | train_cost = 12712.349 (12676.783 w/o reg)| dev_cost = 13089.033 (13053.460 w/o reg)| train_param = 355654.308 | dev_param = 355731.320 | time = 127.128
+Train: 100%|████████████████████████████████| 382/382 [02:20<00:00,  2.96it/s]
+Dev: 100%|████████████████████████████████████| 94/94 [00:12<00:00,  7.78it/s]
+Epoch 10/20 | train_cost = 12667.837 (12632.200 w/o reg)| dev_cost = 13068.368 (13032.728 w/o reg)| train_param = 356371.562 | dev_param = 356404.600 | time = 152.755
+Train: 100%|████████████████████████████████| 382/382 [02:17<00:00,  2.93it/s]
+Dev: 100%|████████████████████████████████████| 94/94 [00:14<00:00,  7.19it/s]
+Epoch 11/20 | train_cost = 12640.769 (12605.096 w/o reg)| dev_cost = 13057.620 (13021.946 w/o reg)| train_param = 356727.577 | dev_param = 356740.280 | time = 151.692
+Train: 100%|████████████████████████████████| 382/382 [02:13<00:00,  2.99it/s]
+Dev: 100%|████████████████████████████████████| 94/94 [00:11<00:00,  8.16it/s]
+Epoch 12/20 | train_cost = 12625.865 (12590.175 w/o reg)| dev_cost = 13052.277 (13016.587 w/o reg)| train_param = 356901.163 | dev_param = 356905.040 | time = 145.601
+Train: 100%|████████████████████████████████| 382/382 [02:40<00:00,  2.18it/s]
+Dev: 100%|████████████████████████████████████| 94/94 [00:16<00:00,  4.91it/s]
+Epoch 13/20 | train_cost = 12618.124 (12582.425 w/o reg)| dev_cost = 13049.624 (13013.925 w/o reg)| train_param = 356984.835 | dev_param = 356985.280 | time = 177.331
+Train: 100%|████████████████████████████████| 382/382 [02:23<00:00,  1.90it/s]
+Dev: 100%|████████████████████████████████████| 94/94 [00:14<00:00,  8.04it/s]
+Epoch 14/20 | train_cost = 12614.153 (12578.450 w/o reg)| dev_cost = 13048.301 (13012.599 w/o reg)| train_param = 357024.506 | dev_param = 357023.840 | time = 158.515
+Train: 100%|████████████████████████████████| 382/382 [02:19<00:00,  3.44it/s]
+Dev: 100%|████████████████████████████████████| 94/94 [00:10<00:00,  7.88it/s]
+Epoch 15/20 | train_cost = 12612.128 (12576.424 w/o reg)| dev_cost = 13047.643 (13011.939 w/o reg)| train_param = 357042.851 | dev_param = 357042.000 | time = 149.500
 
 
+some rerun with more summary, length 60
+logging to ../tensorboard/2017_06_09_10_17_22
+Epoch 1/20 | train_cost = 37585.401 | dev_cost = 69740.831 | param = 148714.840 | time = 345.730
+
+ahaha
+spikes were from it being super buggy/incorrect on how it batched labels
+was pretty much assigning 0 to the last 3 books
 
