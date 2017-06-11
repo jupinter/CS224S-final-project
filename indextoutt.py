@@ -29,7 +29,7 @@ if __name__ == '__main__':
     index = sys.argv[1]
     output_dir = sys.argv[2]
 
-    min_chapters = 19
+    min_chapters = None
     max_chapters = int(sys.argv[3]) if len(sys.argv) > 3 else None
 
     curr_chapter = 0

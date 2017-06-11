@@ -1,0 +1,18 @@
+New model, no loading
+logging to ../tensorboard/2017_06_09_11_35_26
+Batching data...
+../ATrampAbroad/pitches.txt
+3760 files processed
+adding (3760, 60, 3) and (3760, 60, 3)
+../LifeOnTheMississippi/pitches.txt
+7000 files processed
+adding (7001, 60, 3) and (7001, 60, 3)
+../TheAdventuresOfTomSawyer/pitches.txt
+5211 files processed
+adding (5212, 60, 3) and (5212, 60, 3)
+../TheManThatCorruptedHadleyburg/pitches.txt
+7608 files processed
+adding (7609, 60, 3) and (7609, 60, 3)
+Batched in 120.504779
+471 batches of size 50, 387 training, 94 dev
+Model initialized in 0.725

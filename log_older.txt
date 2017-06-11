@@ -1,0 +1,72 @@
+Numeric 15 features, 30 chaps of Tramp
+    num_features = num_numeric_features
+    batch_size = 10
+    num_epochs = 20
+    lr = 0.0001
+    max_length = 50
+    cell_size = 64
+Epoch 20/20 | train_cost = 393237.085 | test_cost = 398782.402 | time = 19.694
+    cell_size = 32
+Epoch 20/20 | train_cost = 638361.911 | test_cost = 659486.179 | time = 15.922
+    cell_size = 128
+Epoch 20/20 | train_cost = 180862.202 | test_cost = 168119.907 | time = 33.100
+    cell_size = 32
+    max_length = 80
+Epoch 20/20 | train_cost = 664002.514 | test_cost = 610700.537 | time = 21.684
+    cell_size = 64
+    max_length = 80
+Epoch 20/20 | train_cost = 418037.541 | test_cost = 384099.702 | time = 23.217
+    cell_size = 128
+    max_length = 80
+Epoch 20/20 | train_cost = 188500.828 | test_cost = 182930.101 | time = 36.034
+NOTE: LR needs tuning. Still large jumps in cost per epoch, so can be increased a bunch, then probably needs decay. Epoch 20 results not too great to use (model can still improve a lot), but does give a good idea of what's going on
+    50, 64, 1e-3
+converged around epoch 10/20.
+Epoch 10/20 | train_cost = 149981.918 | test_cost = 158258.792 | time = 16.050
+Epoch 20/20 | train_cost = 149832.878 | test_cost = 158171.951 | time = 17.117
+    
+
+
+
+lr = 0.001 * .95
+50, 64
+Epoch 10/20 | train_cost = 151213.209 | test_cost = 152247.519 | time = 15.687
+Epoch 20/20 | train_cost = 150937.599 | test_cost = 152141.602 | time = 15.449
+80, 64
+Epoch 10/20 | train_cost = 157400.633 | test_cost = 146002.586 | time = 25.258
+Epoch 20/20 | train_cost = 157095.956 | test_cost = 145916.255 | time = 23.383
+100, 64
+Epoch 10/20 | train_cost = 157496.565 | test_cost = 153405.599 | time = 30.625
+Epoch 20/20 | train_cost = 157203.146 | test_cost = 153239.398 | time = 31.434
+50, 128
+Epoch 10/20 | train_cost = 150130.430 | test_cost = 159795.850 | time = 22.382
+Epoch 20/20 | train_cost = 149995.017 | test_cost = 159700.656 | time = 37.197
+
++7 alpha features
+    batch_size = 10
+    num_epochs = 20
+    lr = 0.001
+    lr_decay = .95
+    max_length = 80
+    cell_size = 64
+Epoch 10/20 | train_cost = 154502.355 | test_cost = 181603.207 | time = 25.070
+Epoch 20/20 | train_cost = 154197.210 | test_cost = 181491.502 | time = 26.730
+    80, 128
+Epoch 10/20 | train_cost = 155854.032 | test_cost = 163708.426 | time = 47.786
+Epoch 20/20 | train_cost = 155760.572 | test_cost = 163656.376 | time = 44.158
+
+l2 regularization
+reg factor 0 (none)
+Epoch 10/20 | train_cost = 156254.683 (156254.683 w/o reg)| dev_cost = 159740.401 (159740.401 w/o reg)| train_param = 141.741 | dev_param = 143.798 | time = 69.419
+Epoch 20/20 | train_cost = 156161.444 (156161.444 w/o reg)| dev_cost = 159684.889 (159684.889 w/o reg)| train_param = 181.267 | dev_param = 183.406 | time = 55.154
+factor 1
+Epoch 10/20 | train_cost = 154673.603 (154566.845 w/o reg)| dev_cost = 174765.615 (174658.965 w/o reg)| train_param = 106.759 | dev_param = 106.647 | time = 40.006
+Epoch 20/20 | train_cost = 154064.571 (153965.391 w/o reg)| dev_cost = 174143.226 (174044.601 w/o reg)| train_param = 99.180 | dev_param = 98.620 | time = 60.474
+factor 10
+
+factor 100
+Epoch 10/20 | train_cost = 158616.324 | dev_cost = 168791.736 | train_param = 29.126 | dev_param = 29.117 | time = 53.358
+Epoch 20/20 | train_cost = 157834.566 | dev_cost = 168110.618 | train_param = 27.574 | dev_param = 27.547 | time = 49.043
+
+
+

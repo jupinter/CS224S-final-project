@@ -1,0 +1,9 @@
+position_type
+syl_accent
+syl_coda_type
+syl_onset_type
+tobi_accent
+tobi_endtone
+R:SylStructure.parent.R:Word.gpos
+R:SylStructure.parent.R:Word.pos
+R:SylStructure.parent.R:Word.pbreak
