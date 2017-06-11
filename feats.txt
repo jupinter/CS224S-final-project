@@ -1,0 +1,15 @@
+accented
+pos_in_word
+stress
+syl_break
+syl_numphones
+syl_codasize
+syllable_duration 
+R:SylStructure.parent.R:Word.blevel
+R:SylStructure.parent.R:Word.cap
+R:SylStructure.parent.R:Word.contentp
+R:SylStructure.parent.R:Word.pbreak_score
+R:SylStructure.parent.R:Word.pos_score
+R:SylStructure.parent.R:Word.word_break
+R:SylStructure.parent.R:Word.word_duration
+R:SylStructure.parent.R:Word.word_numsyls
