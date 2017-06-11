@@ -1,0 +1,32 @@
+CS224s TO-DO list:
+
+1. Figure out a way to distinguish between genuine and bogus predictions (i.e. for defined and undefined pitch values respectively).
+
+2. Optimize training parameters for network with all features by plotting network performance as a function of manipulating these parameters.
+
+3. Decide if to remove final output layer conflating BW_o and FW_o. Why not feed the BW_o and FW_o directly into the regression & regularization? This would recast the task as a multiple regression problem and makre regularization more appropriate. 
+
+4. Extract output weights from network before they are fed to linear regression and run 10-fold cross-validation to select best Lasso regularization lambda. Actually since the regression only has 1 variable at the moment (or 2 if we remove final output layer), then ridge is more justified, because with so few variables we don't want to remove any of them. We just want to optimize the weights.
+
+5. Train network after removing a single feature family at a time to see how important a family of features is in boosting network performance (generate 5%, 10%, 25% true mean SD classifications). 
+
+6. Create a more even train-dev-test split (e.g. 80-10-10) to respect standards in the field.
+
+7. Transplant pitch track from human speech samples to kal's synthesized voice to obtain more directly comparable true labels.
+
+8. Generate Festival utterances for testing, extract F0s and compare how well it does compared to true labels (generate 5%, 10%, 25% true mean SD classifications) to compare with our results.
+
+9. Interpolate and smooth predicted F0 (possibly using cubic spline interpolation; find out if periodic parameter of spline function in R more appropriate given pitch data).
+
+10. Remove parts of pitch track between undefined F0 points (can probably keep single undefined points sandwiched between two defined points)
+
+10. Generate sound files from synthesized continuous pitch tracks. Align with syllable and utterance durations. Insert syllable and utterance labels (i.e. text) into the appropriate tiers.
+ 
+11. Analyse more Festival synthesized files in terms of AER & BER to get more robust accuracy statistics. Sample with replacement to improve estimates.
+
+11. Calculate how many hours of recordings your dataset has. Break that into training-dev-test sets as well. This is a more standard way of reporting dataset size in spoken language processing research.
+
+12. Calculate AER & BER for our network's predicted F0 after interpolation and smoothing.
+
+13. In your results table caption, note that the prediction accuracy ignored undefined F0 values.
+
